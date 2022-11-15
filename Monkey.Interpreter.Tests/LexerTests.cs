@@ -17,13 +17,13 @@ public class LexerTests
             new (new TokenType(Constants.RIGHT_BRACE), "}"),
             new (new TokenType(Constants.COMMA), ","),
             new (new TokenType(Constants.SEMICOLON), ";"),
-            new (new TokenType(Constants.ASSIGNMENT), string.Empty),
+            new (new TokenType(Constants.EOF), "\0"),
         };
 
         foreach (var expectedToken in expectedTokens)
         {
             var token = lexer.GetNextToken();
-            Assert.Equal(expectedToken.TokenType, token.TokenType);
+            Assert.Equal(expectedToken.TokenType.Value, token.TokenType.Value);
             Assert.Equal(expectedToken.Literal, token.Literal);
         }
     }
