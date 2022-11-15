@@ -7,6 +7,11 @@ internal static class Extensions
         return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_';
     }
 
+    internal static bool IsDigit(this char ch)
+    {
+        return '0' <= ch && ch <= '9';
+    }
+
     internal static string GetIdentifier(this string identifier)
     {
         if (identifier == Constants.FUNCTION_KEYWORD)

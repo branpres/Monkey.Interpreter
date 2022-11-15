@@ -62,6 +62,10 @@ public class Lexer
                     var identifier = ReadIdentifier();
                     return new Token(new TokenType(identifier.GetIdentifier()), identifier);
                 }
+                else if (_character.IsDigit())
+                {
+                    return new Token(new TokenType(Constants.INTEGER), ReadNumber());
+                }
                 else
                 {
                     token = new Token(new TokenType(Constants.ILLEGAL), character);
@@ -93,6 +97,17 @@ public class Lexer
     {
         var position = _position;
         while (_character.IsLetter())
+        {
+            ReadCharacter();
+        }
+
+        return _input[position.._position];
+    }
+
+    private string ReadNumber()
+    {
+        var position = _position;
+        while (_character.IsDigit())
         {
             ReadCharacter();
         }
