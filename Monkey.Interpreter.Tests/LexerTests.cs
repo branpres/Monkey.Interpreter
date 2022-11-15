@@ -56,11 +56,12 @@ public class LexerTests
             new (new TokenType(Constants.EOF), "\0"),
         };
 
-        foreach (var expectedToken in expectedTokens)
+        var lexedTokens = new List<Token>();
+        for (var i = 0; i < expectedTokens.Count; i++)
         {
-            var token = lexer.GetNextToken();
-            Assert.Equal(expectedToken.TokenType.Value, token.TokenType.Value);
-            Assert.Equal(expectedToken.Literal, token.Literal);
+            lexedTokens.Add(lexer.GetNextToken());            
         }
+
+        Assert.Equal(expectedTokens, lexedTokens);
     }
 }
