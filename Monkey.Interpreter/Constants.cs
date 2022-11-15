@@ -19,7 +19,9 @@ public static class Constants
 
     // keywords
     public const string FUNCTION = "FUNCTION";
+    public const string FUNCTION_KEYWORD = "fn";
     public const string LET = "LET";
+    public const string LET_KEYWORD = "let";
 
     public const string LEFT_PARENTHESIS = "(";
     public const string RIGHT_PARENTHESIS = ")";

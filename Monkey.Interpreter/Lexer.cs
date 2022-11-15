@@ -18,36 +18,12 @@ public class Lexer
         _input = input;
 
         ReadCharacter();
-    }
-
-    public void ReadCharacter()
-    {
-        if (_readPosition >= _input.Length)
-        {
-            _character = default;
-        }
-        else
-        {
-            _character = _input[_readPosition];
-        }
-
-        _position = _readPosition;
-        _readPosition++;
-    }
-
-    public string ReadIdentifier()
-    {
-        var position = _position;
-        while (IsCharacterLetter(_character))
-        {
-            ReadCharacter();
-        }
-
-        return _input.Substring(position, _position - 1);
-    }
+    }    
 
     public Token GetNextToken()
     {
+        SkipWhitespace();
+
         var character = _character.ToString();
 
         Token token;         
@@ -80,12 +56,17 @@ public class Lexer
             case '\0':
                 token = new Token(new TokenType(Constants.EOF), character);
                 break;
-            //default:
-            //    if (IsCharacterLetter(_character))
-            //    {
-            //        //token = new Token(new TokenType)
-            //    }
-            //    break;
+            default:
+                if (_character.IsLetter())
+                {
+                    var identifier = ReadIdentifier();
+                    return new Token(new TokenType(identifier.GetIdentifier()), identifier);
+                }
+                else
+                {
+                    token = new Token(new TokenType(Constants.ILLEGAL), character);
+                }
+                break;
         }
 
         ReadCharacter();
@@ -93,8 +74,37 @@ public class Lexer
         return token;
     }
 
-    private bool IsCharacterLetter(char character)
+    private void ReadCharacter()
     {
-        return 'a' <= character && character <= 'z' || 'A' <= character && character <= 'Z' || character == '_';
+        if (_readPosition >= _input.Length)
+        {
+            _character = default;
+        }
+        else
+        {
+            _character = _input[_readPosition];
+        }
+
+        _position = _readPosition;
+        _readPosition++;
+    }
+
+    private string ReadIdentifier()
+    {
+        var position = _position;
+        while (_character.IsLetter())
+        {
+            ReadCharacter();
+        }
+
+        return _input[position.._position];
+    }
+
+    private void SkipWhitespace()
+    {
+        while (_character.IsWhitespace())
+        {
+            ReadCharacter();
+        }
     }
 }
