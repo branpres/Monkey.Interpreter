@@ -35,6 +35,17 @@ public class Lexer
         _readPosition++;
     }
 
+    public string ReadIdentifier()
+    {
+        var position = _position;
+        while (IsCharacterLetter(_character))
+        {
+            ReadCharacter();
+        }
+
+        return _input.Substring(position, _position - 1);
+    }
+
     public Token GetNextToken()
     {
         var character = _character.ToString();
@@ -66,13 +77,24 @@ public class Lexer
             case ';':
                 token = new Token(new TokenType(Constants.SEMICOLON), character);
                 break;
-            default:
+            case '\0':
                 token = new Token(new TokenType(Constants.EOF), character);
                 break;
+            //default:
+            //    if (IsCharacterLetter(_character))
+            //    {
+            //        //token = new Token(new TokenType)
+            //    }
+            //    break;
         }
 
         ReadCharacter();
 
         return token;
+    }
+
+    private bool IsCharacterLetter(char character)
+    {
+        return 'a' <= character && character <= 'z' || 'A' <= character && character <= 'Z' || character == '_';
     }
 }
