@@ -14,14 +14,20 @@ internal static class Extensions
 
     internal static string GetIdentifier(this string identifier)
     {
-        if (identifier == Constants.FUNCTION_KEYWORD)
+        var keywords = new Dictionary<string, string>
         {
-            return Constants.FUNCTION;
-        }
+            { Constants.FUNCTION_KEYWORD, Constants.FUNCTION },
+            { Constants.LET_KEYWORD, Constants.LET },
+            { Constants.TRUE_KEYWORD, Constants.TRUE },
+            { Constants.FALSE_KEYWORD, Constants.FALSE },
+            { Constants.IF_KEYWORD, Constants.IF },
+            { Constants.ELSE_KEYWORD, Constants.ELSE },
+            { Constants.RETURN_KEYWORD, Constants.RETURN }
+        };
 
-        if (identifier == Constants.LET_KEYWORD)
+        if (keywords.TryGetValue(identifier, out var value))
         {
-            return Constants.LET;
+            return value;
         }
 
         return Constants.IDENTIFIER;

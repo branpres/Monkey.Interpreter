@@ -13,7 +13,18 @@ public class LexerTests
               x + y;
             };
 
-            let result = add(five, ten);");
+            let result = add(five, ten);
+            !-/*5;
+            5 < 10 > 5;
+            
+            if (5 < 10) {
+                return true;
+            } else {
+                return false;
+            }
+
+            10 == 10;
+            10 != 9;");
 
         var expectedTokens = new List<Token>
         {
@@ -52,6 +63,43 @@ public class LexerTests
             new (new TokenType(Constants.COMMA), ","),
             new (new TokenType(Constants.IDENTIFIER), "ten"),
             new (new TokenType(Constants.RIGHT_PARENTHESIS), ")"),
+            new (new TokenType(Constants.SEMICOLON), ";"),
+            new (new TokenType(Constants.BANG), "!"),
+            new (new TokenType(Constants.MINUS), "-"),
+            new (new TokenType(Constants.SLASH), "/"),
+            new (new TokenType(Constants.ASTERISK), "*"),
+            new (new TokenType(Constants.INTEGER), "5"),
+            new (new TokenType(Constants.SEMICOLON), ";"),
+            new (new TokenType(Constants.INTEGER), "5"),
+            new (new TokenType(Constants.LESS_THAN), "<"),
+            new (new TokenType(Constants.INTEGER), "10"),
+            new (new TokenType(Constants.GREATER_THAN), ">"),
+            new (new TokenType(Constants.INTEGER), "5"),
+            new (new TokenType(Constants.SEMICOLON), ";"),
+            new (new TokenType(Constants.IF), "if"),
+            new (new TokenType(Constants.LEFT_PARENTHESIS), "("),
+            new (new TokenType(Constants.INTEGER), "5"),
+            new (new TokenType(Constants.LESS_THAN), "<"),
+            new (new TokenType(Constants.INTEGER), "10"),
+            new (new TokenType(Constants.RIGHT_PARENTHESIS), ")"),
+            new (new TokenType(Constants.LEFT_BRACE), "{"),
+            new (new TokenType(Constants.RETURN), "return"),
+            new (new TokenType(Constants.TRUE), "true"),
+            new (new TokenType(Constants.SEMICOLON), ";"),
+            new (new TokenType(Constants.RIGHT_BRACE), "}"),
+            new (new TokenType(Constants.ELSE), "else"),
+            new (new TokenType(Constants.LEFT_BRACE), "{"),
+            new (new TokenType(Constants.RETURN), "return"),
+            new (new TokenType(Constants.FALSE), "false"),
+            new (new TokenType(Constants.SEMICOLON), ";"),
+            new (new TokenType(Constants.RIGHT_BRACE), "}"),
+            new (new TokenType(Constants.INTEGER), "10"),
+            new (new TokenType(Constants.EQUAL), "=="),
+            new (new TokenType(Constants.INTEGER), "10"),
+            new (new TokenType(Constants.SEMICOLON), ";"),
+            new (new TokenType(Constants.INTEGER), "10"),
+            new (new TokenType(Constants.NOT_EQUAL), "!="),
+            new (new TokenType(Constants.INTEGER), "9"),
             new (new TokenType(Constants.SEMICOLON), ";"),
             new (new TokenType(Constants.EOF), "\0"),
         };

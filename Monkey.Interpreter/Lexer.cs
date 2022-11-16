@@ -30,10 +30,46 @@ public class Lexer
         switch(_character)
         {
             case '=':
-                token = new Token(new TokenType(Constants.ASSIGNMENT), character);
+                if (PeekCharacter() == '=')
+                {
+                    var tempChar = _character;
+                    ReadCharacter();
+                    token = new Token(new TokenType(Constants.EQUAL), $"{tempChar}{_character}");
+                }
+                else
+                {
+                    token = new Token(new TokenType(Constants.ASSIGNMENT), character);
+                }
                 break;
             case '+':
                 token = new Token(new TokenType(Constants.PLUS), character);
+                break;
+            case '-':
+                token = new Token(new TokenType(Constants.MINUS), character);
+                break;
+            case '!':
+                if (PeekCharacter() == '=')
+                {
+                    var tempChar = _character;
+                    ReadCharacter();
+                    token = new Token(new TokenType(Constants.NOT_EQUAL), $"{tempChar}{_character}");
+                }
+                else
+                {
+                    token = new Token(new TokenType(Constants.BANG), character);
+                }                
+                break;
+            case '*':
+                token = new Token(new TokenType(Constants.ASTERISK), character);
+                break;
+            case '/':
+                token = new Token(new TokenType(Constants.SLASH), character);
+                break;
+            case '<':
+                token = new Token(new TokenType(Constants.LESS_THAN), character);
+                break;
+            case '>':
+                token = new Token(new TokenType(Constants.GREATER_THAN), character);
                 break;
             case '(':
                 token = new Token(new TokenType(Constants.LEFT_PARENTHESIS), character);
@@ -121,5 +157,15 @@ public class Lexer
         {
             ReadCharacter();
         }
+    }
+
+    private char PeekCharacter()
+    {
+        if (_readPosition >= _input.Length)
+        {
+            return default;
+        }
+
+        return _input[_readPosition];
     }
 }
