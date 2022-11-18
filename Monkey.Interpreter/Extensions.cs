@@ -12,17 +12,17 @@ internal static class Extensions
         return '0' <= ch && ch <= '9';
     }
 
-    internal static string GetIdentifier(this string identifier)
+    internal static TokenType GetIdentifier(this string identifier)
     {
-        var keywords = new Dictionary<string, string>
+        var keywords = new Dictionary<string, TokenType>
         {
-            { Constants.FUNCTION_KEYWORD, Constants.FUNCTION },
-            { Constants.LET_KEYWORD, Constants.LET },
-            { Constants.TRUE_KEYWORD, Constants.TRUE },
-            { Constants.FALSE_KEYWORD, Constants.FALSE },
-            { Constants.IF_KEYWORD, Constants.IF },
-            { Constants.ELSE_KEYWORD, Constants.ELSE },
-            { Constants.RETURN_KEYWORD, Constants.RETURN }
+            { Constants.Keyword.FUNCTION, TokenType.FUNCTION },
+            { Constants.Keyword.LET, TokenType.LET },
+            { Constants.Keyword.TRUE, TokenType.TRUE },
+            { Constants.Keyword.FALSE, TokenType.FALSE },
+            { Constants.Keyword.IF, TokenType.IF },
+            { Constants.Keyword.ELSE, TokenType.ELSE },
+            { Constants.Keyword.RETURN, TokenType.RETURN }
         };
 
         if (keywords.TryGetValue(identifier, out var value))
@@ -30,7 +30,7 @@ internal static class Extensions
             return value;
         }
 
-        return Constants.IDENTIFIER;
+        return TokenType.IDENTIFIER;
     }
 
     internal static bool IsWhitespace(this char ch)

@@ -34,77 +34,77 @@ public class Lexer
                 {
                     var tempChar = _character;
                     ReadCharacter();
-                    token = new Token(new TokenType(Constants.EQUAL), $"{tempChar}{_character}");
+                    token = new Token(TokenType.EQUAL, $"{tempChar}{_character}");
                 }
                 else
                 {
-                    token = new Token(new TokenType(Constants.ASSIGNMENT), character);
+                    token = new Token(TokenType.ASSIGNMENT, character);
                 }
                 break;
             case '+':
-                token = new Token(new TokenType(Constants.PLUS), character);
+                token = new Token(TokenType.PLUS, character);
                 break;
             case '-':
-                token = new Token(new TokenType(Constants.MINUS), character);
+                token = new Token(TokenType.MINUS, character);
                 break;
             case '!':
                 if (PeekCharacter() == '=')
                 {
                     var tempChar = _character;
                     ReadCharacter();
-                    token = new Token(new TokenType(Constants.NOT_EQUAL), $"{tempChar}{_character}");
+                    token = new Token(TokenType.NOT_EQUAL, $"{tempChar}{_character}");
                 }
                 else
                 {
-                    token = new Token(new TokenType(Constants.BANG), character);
+                    token = new Token(TokenType.BANG, character);
                 }                
                 break;
             case '*':
-                token = new Token(new TokenType(Constants.ASTERISK), character);
+                token = new Token(TokenType.ASTERISK, character);
                 break;
             case '/':
-                token = new Token(new TokenType(Constants.SLASH), character);
+                token = new Token(TokenType.SLASH, character);
                 break;
             case '<':
-                token = new Token(new TokenType(Constants.LESS_THAN), character);
+                token = new Token(TokenType.LESS_THAN, character);
                 break;
             case '>':
-                token = new Token(new TokenType(Constants.GREATER_THAN), character);
+                token = new Token(TokenType.GREATER_THAN, character);
                 break;
             case '(':
-                token = new Token(new TokenType(Constants.LEFT_PARENTHESIS), character);
+                token = new Token(TokenType.LEFT_PARENTHESIS, character);
                 break;
             case ')':
-                token = new Token(new TokenType(Constants.RIGHT_PARENTHESIS), character);
+                token = new Token(TokenType.RIGHT_PARENTHESIS, character);
                 break;
             case '{':
-                token = new Token(new TokenType(Constants.LEFT_BRACE), character);
+                token = new Token(TokenType.LEFT_BRACE, character);
                 break;
             case '}':
-                token = new Token(new TokenType(Constants.RIGHT_BRACE), character);
+                token = new Token(TokenType.RIGHT_BRACE, character);
                 break;
             case ',':
-                token = new Token(new TokenType(Constants.COMMA), character);
+                token = new Token(TokenType.COMMA, character);
                 break;
             case ';':
-                token = new Token(new TokenType(Constants.SEMICOLON), character);
+                token = new Token(TokenType.SEMICOLON, character);
                 break;
             case '\0':
-                token = new Token(new TokenType(Constants.EOF), character);
+                token = new Token(TokenType.EOF, character);
                 break;
             default:
                 if (_character.IsLetter())
                 {
                     var identifier = ReadIdentifier();
-                    return new Token(new TokenType(identifier.GetIdentifier()), identifier);
+                    return new Token(identifier.GetIdentifier(), identifier);
                 }
                 else if (_character.IsDigit())
                 {
-                    return new Token(new TokenType(Constants.INTEGER), ReadNumber());
+                    return new Token(TokenType.INTEGER, ReadNumber());
                 }
                 else
                 {
-                    token = new Token(new TokenType(Constants.ILLEGAL), character);
+                    token = new Token(TokenType.ILLEGAL, character);
                 }
                 break;
         }

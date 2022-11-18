@@ -14,6 +14,6 @@ public record Token
 
     public override string ToString()
     {
-        return $"TokenType:{TokenType.Value} Literal:{Literal}";
+        return $"{{TokenType:{TokenType} Literal:{Literal}}}";
     }
 }
