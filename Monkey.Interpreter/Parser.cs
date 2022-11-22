@@ -4,6 +4,8 @@ namespace Monkey.Interpreter;
 
 public class Parser
 {
+    public List<string> Errors { get; } = new List<string>();
+
     private readonly Lexer _lexer;
 
     private Token _currenToken;
@@ -19,17 +21,11 @@ public class Parser
         NextToken();
     }
 
-    public void NextToken()
-    {
-        _currenToken = _peekToken;
-        _peekToken = _lexer.GetNextToken();
-    }
-
     public MonkeyProgram ParseProgram()
     {
         var program = new MonkeyProgram();
 
-        while(_currenToken.TokenType != TokenType.EOF)
+        while(!IsCurrentTokenExpectedType(TokenType.EOF))
         {
             var statement = ParseStatement();
             if (statement != null)
@@ -43,15 +39,19 @@ public class Parser
         return program;
     }
 
+    private void NextToken()
+    {
+        _currenToken = _peekToken;
+        _peekToken = _lexer.GetNextToken();
+    }
+
     private IStatement? ParseStatement()
     {
-        switch (_currenToken.TokenType)
+        return _currenToken.TokenType switch
         {
-            case TokenType.LET:
-                return ParseLetStatement();
-            default:
-                return null;
-        }
+            TokenType.LET => ParseLetStatement(),
+            _ => null,
+        };
     }
 
     private LetStatement? ParseLetStatement()
@@ -63,7 +63,7 @@ public class Parser
             return null;
         }
 
-        var statementName = new IdentifierExpression(_currenToken, _currenToken.Literal);
+        var name = new IdentifierExpression(_currenToken, _currenToken.Literal);
 
         if (!IsExpectedPeekTokenOfType(TokenType.ASSIGNMENT))
         {
@@ -75,7 +75,7 @@ public class Parser
             NextToken();
         }
 
-        return new LetStatement(token, statementName, null);
+        return new LetStatement(token, name, null);
     }
 
     private bool IsCurrentTokenExpectedType(TokenType tokenType)
@@ -96,6 +96,7 @@ public class Parser
             return true;
         }
 
+        Errors.Add(string.Format("Expected next token to be {0}. Got {1} instead.", tokenType, _peekToken.TokenType));
         return false;
     }
 }

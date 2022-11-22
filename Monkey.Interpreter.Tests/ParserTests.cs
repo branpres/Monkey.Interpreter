@@ -13,7 +13,6 @@ public class ParserTests
             let foobar = 838383;");
 
         var parser = new Parser(lexer);
-
         var program = parser.ParseProgram();
 
         Assert.NotNull(program);
@@ -38,5 +37,21 @@ public class ParserTests
         Assert.Equal(TokenType.LET, letStatement.Token.TokenType);
         Assert.Equal(expectedName, letStatement.Name.Value);
         Assert.Equal(expectedName, letStatement.Name.GetTokenLiteral());
+    }
+
+    [Fact]
+    public void ShouldGetParserErrors()
+    {
+        var lexer = new Lexer(@"
+            let x = 5;
+            let = 10;
+            let 838383;");
+
+        var parser = new Parser(lexer);
+        parser.ParseProgram();
+
+        Assert.Equal(2, parser.Errors.Count);
+        Assert.Contains(parser.Errors, x => x.Contains($"Expected next token to be {TokenType.IDENTIFIER}. Got {TokenType.ASSIGNMENT} instead."));
+        Assert.Contains(parser.Errors, x => x.Contains($"Expected next token to be {TokenType.IDENTIFIER}. Got {TokenType.INTEGER} instead."));
     }
 }
