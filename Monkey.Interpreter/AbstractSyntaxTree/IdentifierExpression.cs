@@ -2,18 +2,18 @@
 
 public class IdentifierExpression : IExpression
 {
-    private readonly Token _token;
+    public Token Token { get; }
 
-    private readonly string _value;
+    public string Value { get; }
 
     public IdentifierExpression(Token token, string value)
     {
-        _token = token;
-        _value = value;
+        Token = token;
+        Value = value;
     }
 
     public string GetTokenLiteral()
     {
-        return _token.Literal;
+        return Token.Literal;
     }
 }

@@ -1,9 +1,11 @@
-﻿namespace Monkey.Interpreter.Tests;
+﻿using Monkey.Interpreter.AbstractSyntaxTree;
+
+namespace Monkey.Interpreter.Tests;
 
 public class ParserTests
 {
     [Fact]
-    public void ShouldParseLetStatements()
+    public void ShouldParseProgramStatements()
     {
         var lexer = new Lexer(@"
             let x = 5;
@@ -16,5 +18,25 @@ public class ParserTests
 
         Assert.NotNull(program);
         Assert.Equal(3, program.Statements().Count);
+    }
+
+    [Theory]
+    [InlineData("let x = 5;", "x")]
+    [InlineData("let y = 10;", "y")]
+    [InlineData("let foobar = 838383;", "foobar")]
+    public void ShouldParseLetStatements(string statement, string expectedName)
+    {
+        var lexer = new Lexer(statement);
+
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var parsedStatement = program.Statements().Single();
+        Assert.Equal("let", parsedStatement.GetTokenLiteral());
+
+        var letStatement = (LetStatement)parsedStatement;
+        Assert.Equal(TokenType.LET, letStatement.Token.TokenType);
+        Assert.Equal(expectedName, letStatement.Name.Value);
+        Assert.Equal(expectedName, letStatement.Name.GetTokenLiteral());
     }
 }

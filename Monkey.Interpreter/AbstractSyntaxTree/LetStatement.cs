@@ -2,21 +2,21 @@
 
 public class LetStatement : IStatement
 {
-    private readonly Token _token;
+    public Token Token { get; }
 
-    private IdentifierExpression _identifier;
+    public IdentifierExpression Name { get; }
 
-    private IExpression _value;
+    public IExpression Value { get; }
 
-    public LetStatement(Token token, IdentifierExpression identifier, IExpression value)
+    public LetStatement(Token token, IdentifierExpression name, IExpression value)
     {
-        _token = token;
-        _identifier = identifier;
-        _value = value;
+        Token = token;
+        Name = name;
+        Value = value;
     }
 
     public string GetTokenLiteral()
     {
-        return _token.Literal;
+        return Token.Literal;
     }
 }
