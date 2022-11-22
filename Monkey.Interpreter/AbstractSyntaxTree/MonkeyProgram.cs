@@ -2,12 +2,11 @@
 
 public class MonkeyProgram : INode
 {
-    private readonly List<IStatement> _statements;
+    private readonly List<IStatement> _statements = new();
 
-    public MonkeyProgram(List<IStatement> statements)
-    {
-        _statements = statements;
-    }
+    public List<IStatement> Statements() => _statements;
+
+    public void AddStatement(IStatement statement) => _statements.Add(statement);
 
     public string GetTokenLiteral()
     {
