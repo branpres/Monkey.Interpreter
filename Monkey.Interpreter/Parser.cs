@@ -50,6 +50,7 @@ public class Parser
         return _currenToken.TokenType switch
         {
             TokenType.LET => ParseLetStatement(),
+            TokenType.RETURN => ParseReturnStatement(),
             _ => null,
         };
     }
@@ -76,6 +77,19 @@ public class Parser
         }
 
         return new LetStatement(token, name, null);
+    }
+
+    private ReturnStatement? ParseReturnStatement()
+    {
+        var token = _currenToken;
+
+        while (!IsCurrentTokenExpectedType(TokenType.SEMICOLON))
+        {
+            NextToken();
+        }
+
+        return new ReturnStatement(token, null);
+
     }
 
     private bool IsCurrentTokenExpectedType(TokenType tokenType)

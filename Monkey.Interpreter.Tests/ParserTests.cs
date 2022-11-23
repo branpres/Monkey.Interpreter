@@ -11,7 +11,6 @@ public class ParserTests
             let x = 5;
             let y = 10;
             let foobar = 838383;");
-
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
@@ -23,10 +22,9 @@ public class ParserTests
     [InlineData("let x = 5;", "x")]
     [InlineData("let y = 10;", "y")]
     [InlineData("let foobar = 838383;", "foobar")]
-    public void ShouldParseLetStatements(string statement, string expectedName)
+    public void ShouldParseLetStatement(string statement, string expectedName)
     {
         var lexer = new Lexer(statement);
-
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
@@ -37,6 +35,23 @@ public class ParserTests
         Assert.Equal(TokenType.LET, letStatement.Token.TokenType);
         Assert.Equal(expectedName, letStatement.Name.Value);
         Assert.Equal(expectedName, letStatement.Name.GetTokenLiteral());
+    }
+
+    [Theory]
+    [InlineData("return 5;")]
+    [InlineData("return 10;")]
+    [InlineData("return  993322;")]
+    public void ShouldParseReturnStatement(string statement)
+    {
+        var lexer = new Lexer(statement);
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var parsedStatement = program.Statements().Single();
+        Assert.Equal("return", parsedStatement.GetTokenLiteral());
+
+        var returnStatement = (ReturnStatement)parsedStatement;
+        Assert.Equal(TokenType.RETURN, returnStatement.Token.TokenType);
     }
 
     [Fact]
