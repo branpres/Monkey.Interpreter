@@ -17,4 +17,15 @@ public class MonkeyProgram : INode
 
         return string.Empty;
     }
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        foreach (var statement in _statements)
+        {
+            sb.Append(statement.ToString());
+        }
+
+        return sb.ToString();
+    }
 }

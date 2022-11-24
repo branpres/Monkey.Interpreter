@@ -1,19 +1,16 @@
 ﻿namespace Monkey.Interpreter.AbstractSyntaxTree;
 
-public class IdentifierExpression : IExpression
+public class IdentifierExpression : Node, IExpression
 {
-    public Token Token { get; }
-
     public string Value { get; }
 
-    public IdentifierExpression(Token token, string value)
+    public IdentifierExpression(Token token, string value) : base(token)
     {
-        Token = token;
         Value = value;
     }
 
-    public string GetTokenLiteral()
+    public override string ToString()
     {
-        return Token.Literal;
+        return Value;
     }
 }

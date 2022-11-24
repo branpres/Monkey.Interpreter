@@ -69,4 +69,17 @@ public class ParserTests
         Assert.Contains(parser.Errors, x => x.Contains($"Expected next token to be {TokenType.IDENTIFIER}. Got {TokenType.ASSIGNMENT} instead."));
         Assert.Contains(parser.Errors, x => x.Contains($"Expected next token to be {TokenType.IDENTIFIER}. Got {TokenType.INTEGER} instead."));
     }
+
+    [Fact]
+    public void ShouldGetCorrectToStringFromMonkeyProgram()
+    {
+        var program = new MonkeyProgram();
+
+        program.AddStatement(new LetStatement(
+            new Token(TokenType.LET, "let"),
+            new IdentifierExpression(new Token(TokenType.IDENTIFIER, "myVar"), "myVar"),
+            new IdentifierExpression(new Token(TokenType.IDENTIFIER, "anotherVar"), "anotherVar")));
+
+        Assert.Equal("let myVar = anotherVar;", program.ToString());
+    }
 }

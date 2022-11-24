@@ -1,19 +1,25 @@
 ﻿namespace Monkey.Interpreter.AbstractSyntaxTree;
 
-public class ReturnStatement : IStatement
+public class ReturnStatement : Node, IStatement
 {
-    public Token Token { get; }
-
     public IExpression ReturnValue { get; }
 
-    public ReturnStatement(Token token, IExpression returnValue)
+    public ReturnStatement(Token token, IExpression returnValue) : base(token)
     {
-        Token = token;
         ReturnValue = returnValue;
     }
 
-    public string GetTokenLiteral()
+    public override string ToString()
     {
-        return Token.Literal;
+        var sb = new StringBuilder($"{GetTokenLiteral()} ");
+
+        if (ReturnValue != null)
+        {
+            sb.Append(ReturnValue.ToString());
+        }
+
+        sb.Append(';');
+
+        return sb.ToString();
     }
 }

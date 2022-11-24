@@ -1,22 +1,28 @@
 ﻿namespace Monkey.Interpreter.AbstractSyntaxTree;
 
-public class LetStatement : IStatement
+public class LetStatement : Node, IStatement
 {
-    public Token Token { get; }
-
     public IdentifierExpression Name { get; }
 
     public IExpression Value { get; }
 
-    public LetStatement(Token token, IdentifierExpression name, IExpression value)
+    public LetStatement(Token token, IdentifierExpression name, IExpression value) : base(token)
     {
-        Token = token;
         Name = name;
         Value = value;
     }
 
-    public string GetTokenLiteral()
+    public override string ToString()
     {
-        return Token.Literal;
+        var sb = new StringBuilder($"{GetTokenLiteral()} {Name} = ");
+
+        if (Value != null)
+        {
+            sb.Append(Value.ToString());
+        }
+
+        sb.Append(';');
+
+        return sb.ToString();
     }
 }
