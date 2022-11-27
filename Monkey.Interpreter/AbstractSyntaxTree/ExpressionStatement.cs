@@ -1,6 +1,6 @@
 ﻿namespace Monkey.Interpreter.AbstractSyntaxTree;
 
-public class ExpressionStatement : Node, IExpression
+public class ExpressionStatement : Node, IStatement
 {
     public IExpression Expression { get; }
 

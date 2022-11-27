@@ -8,6 +8,10 @@ public class Parser
 
     private readonly Lexer _lexer;
 
+    private readonly Dictionary<TokenType, Func<IExpression>> _prefixParseFunctions = new();
+
+    private readonly Dictionary<TokenType, Func<IExpression>> _infixParseFunctions = new();
+
     private Token _currenToken;
 
     private Token _peekToken;
@@ -19,13 +23,15 @@ public class Parser
         // initialize _currentToken and _peekToken
         NextToken();
         NextToken();
+
+        _prefixParseFunctions.Add(TokenType.IDENTIFIER, ParseIdentifier);
     }
 
     public MonkeyProgram ParseProgram()
     {
         var program = new MonkeyProgram();
 
-        while(!IsCurrentTokenExpectedType(TokenType.EOF))
+        while(!IsCurrentToken(TokenType.EOF))
         {
             var statement = ParseStatement();
             if (statement != null)
@@ -51,7 +57,7 @@ public class Parser
         {
             TokenType.LET => ParseLetStatement(),
             TokenType.RETURN => ParseReturnStatement(),
-            _ => null,
+            _ => ParseExpressionStatement(),
         };
     }
 
@@ -59,19 +65,19 @@ public class Parser
     {   
         var token = _currenToken;
 
-        if (!IsExpectedPeekTokenOfType(TokenType.IDENTIFIER))
+        if (!IsExpectedPeekTokenOf(TokenType.IDENTIFIER))
         {
             return null;
         }
 
         var name = new IdentifierExpression(_currenToken, _currenToken.Literal);
 
-        if (!IsExpectedPeekTokenOfType(TokenType.ASSIGNMENT))
+        if (!IsExpectedPeekTokenOf(TokenType.ASSIGNMENT))
         {
             return null;
         }
 
-        while (!IsCurrentTokenExpectedType(TokenType.SEMICOLON))
+        while (!IsCurrentToken(TokenType.SEMICOLON))
         {
             NextToken();
         }
@@ -83,28 +89,57 @@ public class Parser
     {
         var token = _currenToken;
 
-        while (!IsCurrentTokenExpectedType(TokenType.SEMICOLON))
+        while (!IsCurrentToken(TokenType.SEMICOLON))
         {
             NextToken();
         }
 
         return new ReturnStatement(token, null);
-
     }
 
-    private bool IsCurrentTokenExpectedType(TokenType tokenType)
+    private ExpressionStatement ParseExpressionStatement()
     {
-        return _currenToken.TokenType == tokenType;
+        var expression = ParseExpression(Precedence.LOWEST);
+
+        var expressionStatement = new ExpressionStatement(_currenToken, expression);
+
+        if (IsExpectedPeekTokenOf(TokenType.SEMICOLON))
+        {
+            NextToken();
+        }
+
+        return expressionStatement;
     }
 
-    private bool IsPeekTokenExpectedType(TokenType tokenType)
+    private IExpression? ParseExpression(Precedence precedence)
     {
-        return _peekToken.TokenType == tokenType;
+        if (_prefixParseFunctions.ContainsKey(_currenToken.TokenType))
+        {
+            var prefixFunction = _prefixParseFunctions[_currenToken.TokenType];
+            return prefixFunction.Invoke();
+        }
+        
+        return null;
     }
 
-    private bool IsExpectedPeekTokenOfType(TokenType tokenType)
+    private IExpression ParseIdentifier()
     {
-        if (IsPeekTokenExpectedType(tokenType))
+        return new IdentifierExpression(_currenToken, _currenToken.Literal);
+    }
+
+    private bool IsCurrentToken(TokenType expectedTokenType)
+    {
+        return _currenToken.TokenType == expectedTokenType;
+    }
+
+    private bool IsPeekToken(TokenType expectedTokenType)
+    {
+        return _peekToken.TokenType == expectedTokenType;
+    }
+
+    private bool IsExpectedPeekTokenOf(TokenType tokenType)
+    {
+        if (IsPeekToken(tokenType))
         {
             NextToken();
             return true;

@@ -82,4 +82,19 @@ public class ParserTests
 
         Assert.Equal("let myVar = anotherVar;", program.ToString());
     }
+
+    [Fact]
+    public void ShouldParseIdentifierExpression()
+    {
+        var lexer = new Lexer("foobar;");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements());
+
+        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var identifierExpression = (IdentifierExpression)expressionStatement.Expression;
+        Assert.Equal("foobar", identifierExpression.Value);
+        Assert.Equal("foobar", identifierExpression.GetTokenLiteral());
+    }
 }
