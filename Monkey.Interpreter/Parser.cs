@@ -103,7 +103,7 @@ public class Parser
 
         var expressionStatement = new ExpressionStatement(_currenToken, expression);
 
-        if (IsExpectedPeekTokenOf(TokenType.SEMICOLON))
+        if (IsPeekToken(TokenType.SEMICOLON))
         {
             NextToken();
         }
