@@ -8,9 +8,9 @@ public class Parser
 
     private readonly Lexer _lexer;
 
-    private readonly Dictionary<TokenType, Func<IExpression>> _prefixParseFunctions = new();
+    private readonly Dictionary<TokenType, Func<IExpression?>> _prefixParseFunctions = new();
 
-    private readonly Dictionary<TokenType, Func<IExpression>> _infixParseFunctions = new();
+    private readonly Dictionary<TokenType, Func<IExpression?>> _infixParseFunctions = new();
 
     private Token _currenToken;
 
@@ -25,6 +25,7 @@ public class Parser
         NextToken();
 
         _prefixParseFunctions.Add(TokenType.IDENTIFIER, ParseIdentifier);
+        _prefixParseFunctions.Add(TokenType.INTEGER, ParseIntegerLiteral);
     }
 
     public MonkeyProgram ParseProgram()
@@ -127,6 +128,17 @@ public class Parser
         return new IdentifierExpression(_currenToken, _currenToken.Literal);
     }
 
+    private IExpression? ParseIntegerLiteral()
+    {
+        if (!int.TryParse(_currenToken.Literal, out var integerLiteral))
+        {
+            Errors.Add($"Could not parse {_currenToken.Literal} as integer.");
+            return null;
+        }
+
+        return new IntegerLiteralExpression(_currenToken, integerLiteral);
+    }
+
     private bool IsCurrentToken(TokenType expectedTokenType)
     {
         return _currenToken.TokenType == expectedTokenType;
@@ -145,7 +157,7 @@ public class Parser
             return true;
         }
 
-        Errors.Add(string.Format("Expected next token to be {0}. Got {1} instead.", tokenType, _peekToken.TokenType));
+        Errors.Add($"Expected next token to be {tokenType}. Got {_peekToken.TokenType} instead.");
         return false;
     }
 }

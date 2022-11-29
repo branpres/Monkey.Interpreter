@@ -1,4 +1,5 @@
 ﻿using Monkey.Interpreter.AbstractSyntaxTree;
+using System.Net.Http.Headers;
 
 namespace Monkey.Interpreter.Tests;
 
@@ -96,5 +97,20 @@ public class ParserTests
         var identifierExpression = (IdentifierExpression)expressionStatement.Expression;
         Assert.Equal("foobar", identifierExpression.Value);
         Assert.Equal("foobar", identifierExpression.GetTokenLiteral());
+    }
+
+    [Fact]
+    public void ShouldParseIntegerLiteralExpression()
+    {
+        var lexer = new Lexer("5");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements());
+
+        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var integerLiteralExpression = (IntegerLiteralExpression)expressionStatement.Expression;
+        Assert.Equal(5, integerLiteralExpression.Value);
+        Assert.Equal("5", integerLiteralExpression.GetTokenLiteral());
     }
 }
