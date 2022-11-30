@@ -26,6 +26,8 @@ public class Parser
 
         _prefixParseFunctions.Add(TokenType.IDENTIFIER, ParseIdentifier);
         _prefixParseFunctions.Add(TokenType.INTEGER, ParseIntegerLiteral);
+        _prefixParseFunctions.Add(TokenType.BANG, ParsePrefix);
+        _prefixParseFunctions.Add(TokenType.MINUS, ParsePrefix);
     }
 
     public MonkeyProgram ParseProgram()
@@ -98,11 +100,15 @@ public class Parser
         return new ReturnStatement(token, null);
     }
 
-    private ExpressionStatement ParseExpressionStatement()
+    private ExpressionStatement? ParseExpressionStatement()
     {
         var expression = ParseExpression(Precedence.LOWEST);
 
-        var expressionStatement = new ExpressionStatement(_currenToken, expression);
+        ExpressionStatement? expressionStatement = null;
+        if (expression != null)
+        {
+            expressionStatement = new ExpressionStatement(_currenToken, expression);
+        }
 
         if (IsPeekToken(TokenType.SEMICOLON))
         {
@@ -114,9 +120,9 @@ public class Parser
 
     private IExpression? ParseExpression(Precedence precedence)
     {
-        if (_prefixParseFunctions.ContainsKey(_currenToken.TokenType))
+        if (_prefixParseFunctions.TryGetValue(_currenToken.TokenType, out var value))
         {
-            var prefixFunction = _prefixParseFunctions[_currenToken.TokenType];
+            var prefixFunction = value;
             return prefixFunction.Invoke();
         }
         
@@ -137,6 +143,18 @@ public class Parser
         }
 
         return new IntegerLiteralExpression(_currenToken, integerLiteral);
+    }
+
+    private IExpression? ParsePrefix()
+    {
+        var token = _currenToken;
+        var prefixOperator = _currenToken.Literal;
+
+        NextToken();
+
+        var right = ParseExpression(Precedence.PREFIX);
+
+        return new PrefixExpression(token, prefixOperator, right);
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)

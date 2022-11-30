@@ -1,4 +1,5 @@
-﻿using Monkey.Interpreter.AbstractSyntaxTree;
+﻿using Microsoft.VisualStudio.TestPlatform.TestHost;
+using Monkey.Interpreter.AbstractSyntaxTree;
 using System.Net.Http.Headers;
 
 namespace Monkey.Interpreter.Tests;
@@ -110,7 +111,44 @@ public class ParserTests
 
         var expressionStatement = (ExpressionStatement)program.Statements()[0];
         var integerLiteralExpression = (IntegerLiteralExpression)expressionStatement.Expression;
-        Assert.Equal(5, integerLiteralExpression.Value);
-        Assert.Equal("5", integerLiteralExpression.GetTokenLiteral());
+        Assert.True(IsIntegerLiteral(integerLiteralExpression, 5));
+    }
+
+    [Theory]
+    [InlineData("!5;", "!", 5)]
+    [InlineData("-15;", "-", 15)]
+    public void ShouldParsePrefixExpression(string input, string prefixOperator, int value)
+    {
+        var lexer = new Lexer(input);
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements());
+
+        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var prefixExpression = (PrefixExpression)expressionStatement.Expression;
+        Assert.Equal(prefixOperator, prefixExpression.Operator);
+        Assert.True(IsIntegerLiteral(prefixExpression.Right, value));
+    }
+
+    private static bool IsIntegerLiteral(IExpression expression, int value)
+    {
+        if (expression is not IntegerLiteralExpression)
+        {
+            return false;
+        }
+
+        var integerLiteralExpression = (IntegerLiteralExpression)expression;
+        if (integerLiteralExpression.Value != value)
+        {
+            return false;
+        }
+
+        if (integerLiteralExpression.GetTokenLiteral() != value.ToString())
+        {
+            return false;
+        }
+
+        return true;
     }
 }
