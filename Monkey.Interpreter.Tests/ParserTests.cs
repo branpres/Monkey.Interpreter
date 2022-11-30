@@ -131,6 +131,52 @@ public class ParserTests
         Assert.True(IsIntegerLiteral(prefixExpression.Right, value));
     }
 
+    [Theory]
+    [InlineData("5 + 5;", 5, "+", 5)]
+    [InlineData("5 - 5;", 5, "-", 5)]
+    [InlineData("5 * 5;", 5, "*", 5)]
+    [InlineData("5 / 5;", 5, "/", 5)]
+    [InlineData("5 > 5;", 5, ">", 5)]
+    [InlineData("5 < 5;", 5, "<", 5)]
+    [InlineData("5 == 5;", 5, "==", 5)]
+    [InlineData("5 != 5;", 5, "!=", 5)]
+    public void ShouldParseInfixExpression(string input, int leftValue, string infixOperator, int rightValue)
+    {
+        var lexer = new Lexer(input);
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements());
+
+        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var infixExpression = (InfixExpression)expressionStatement.Expression;
+        Assert.True(IsIntegerLiteral(infixExpression.Left, leftValue));
+        Assert.Equal(infixOperator, infixExpression.Operator);
+        Assert.True(IsIntegerLiteral(infixExpression.Right, rightValue));
+    }
+
+    [Theory]
+    [InlineData("-a * b", "((-a) * b)")]
+    [InlineData("!-a", "(!(-a))")]
+    [InlineData("a + b + c", "((a + b) + c)")]
+    [InlineData("a + b - c", "((a + b) - c)")]
+    [InlineData("a * b * c", "((a * b) * c)")]
+    [InlineData("a * b / c", "((a * b) / c)")]
+    [InlineData("a + b / c", "(a + (b / c))")]
+    [InlineData("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)")]
+    [InlineData("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)")]
+    [InlineData("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))")]
+    [InlineData("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))")]
+    [InlineData("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))")]
+    public void ShouldParsePrefixAndInfixExpressions(string input, string expected)
+    {
+        var lexer = new Lexer(input);
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Equal(expected, program.ToString());
+    }
+
     private static bool IsIntegerLiteral(IExpression expression, int value)
     {
         if (expression is not IntegerLiteralExpression)

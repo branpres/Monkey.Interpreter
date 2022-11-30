@@ -10,7 +10,19 @@ public class Parser
 
     private readonly Dictionary<TokenType, Func<IExpression?>> _prefixParseFunctions = new();
 
-    private readonly Dictionary<TokenType, Func<IExpression?>> _infixParseFunctions = new();
+    private readonly Dictionary<TokenType, Func<IExpression, IExpression?>> _infixParseFunctions = new();
+
+    private readonly Dictionary<TokenType, Precedence> _precedences = new()
+    {
+        { TokenType.EQUAL, Precedence.EQUALS },
+        { TokenType.NOT_EQUAL, Precedence.EQUALS },
+        { TokenType.LESS_THAN, Precedence.LESS_OR_GREATER },
+        { TokenType.GREATER_THAN, Precedence.LESS_OR_GREATER },
+        { TokenType.PLUS, Precedence.SUM },
+        { TokenType.MINUS, Precedence.SUM },
+        { TokenType.SLASH, Precedence.PRODUCT },
+        { TokenType.ASTERISK, Precedence.PRODUCT }
+    };
 
     private Token _currenToken;
 
@@ -28,6 +40,15 @@ public class Parser
         _prefixParseFunctions.Add(TokenType.INTEGER, ParseIntegerLiteral);
         _prefixParseFunctions.Add(TokenType.BANG, ParsePrefix);
         _prefixParseFunctions.Add(TokenType.MINUS, ParsePrefix);
+
+        _infixParseFunctions.Add(TokenType.PLUS, ParseInfix);
+        _infixParseFunctions.Add(TokenType.MINUS, ParseInfix);
+        _infixParseFunctions.Add(TokenType.SLASH, ParseInfix);
+        _infixParseFunctions.Add(TokenType.ASTERISK, ParseInfix);
+        _infixParseFunctions.Add(TokenType.EQUAL, ParseInfix);
+        _infixParseFunctions.Add(TokenType.NOT_EQUAL, ParseInfix);
+        _infixParseFunctions.Add(TokenType.LESS_THAN, ParseInfix);
+        _infixParseFunctions.Add(TokenType.GREATER_THAN, ParseInfix);
     }
 
     public MonkeyProgram ParseProgram()
@@ -120,10 +141,26 @@ public class Parser
 
     private IExpression? ParseExpression(Precedence precedence)
     {
-        if (_prefixParseFunctions.TryGetValue(_currenToken.TokenType, out var value))
+        if (_prefixParseFunctions.TryGetValue(_currenToken.TokenType, out var prefixParseFunction))
         {
-            var prefixFunction = value;
-            return prefixFunction.Invoke();
+            var left = prefixParseFunction.Invoke();
+
+            while(!IsPeekToken(TokenType.SEMICOLON) && precedence < PeekPrecedence())
+            {
+                if (!_infixParseFunctions.TryGetValue(_peekToken.TokenType, out var infixParseFunction))
+                {
+                    return left;
+                }
+
+                NextToken();
+
+                if (left != null)
+                {
+                    left = infixParseFunction(left);
+                }
+            }
+
+            return left;
         }
         
         return null;
@@ -154,7 +191,31 @@ public class Parser
 
         var right = ParseExpression(Precedence.PREFIX);
 
-        return new PrefixExpression(token, prefixOperator, right);
+        if (right != null)
+        {
+            return new PrefixExpression(token, prefixOperator, right);
+        }
+
+        return null;
+    }
+
+    private IExpression? ParseInfix(IExpression left)
+    {
+        var token = _currenToken;
+        var infixOperator = _currenToken.Literal;
+
+        var precedence = CurrentPrecedence();
+
+        NextToken();
+
+        var right = ParseExpression(precedence);
+
+        if (right != null)
+        {
+            return new InfixExpression(token, left, infixOperator, right);
+        }
+
+        return null;
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)
@@ -177,5 +238,25 @@ public class Parser
 
         Errors.Add($"Expected next token to be {tokenType}. Got {_peekToken.TokenType} instead.");
         return false;
+    }
+
+    private Precedence CurrentPrecedence()
+    {
+        return GetPrecedence(_currenToken);
+    }
+
+    private Precedence PeekPrecedence()
+    {
+        return GetPrecedence(_peekToken);
+    }
+
+    private Precedence GetPrecedence(Token token)
+    {
+        if (_precedences.TryGetValue(token.TokenType, out var precedence))
+        {
+            return precedence;
+        }
+
+        return Precedence.LOWEST;
     }
 }
