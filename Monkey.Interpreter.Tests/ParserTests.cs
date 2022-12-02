@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualStudio.TestPlatform.TestHost;
-using Monkey.Interpreter.AbstractSyntaxTree;
-using System.Net.Http.Headers;
+﻿using Monkey.Interpreter.AbstractSyntaxTree;
 
 namespace Monkey.Interpreter.Tests;
 
@@ -96,8 +94,7 @@ public class ParserTests
 
         var expressionStatement = (ExpressionStatement)program.Statements()[0];
         var identifierExpression = (IdentifierExpression)expressionStatement.Expression;
-        Assert.Equal("foobar", identifierExpression.Value);
-        Assert.Equal("foobar", identifierExpression.GetTokenLiteral());
+        Assert.True(IsIdentifier(identifierExpression, "foobar"));
     }
 
     [Fact]
@@ -127,8 +124,7 @@ public class ParserTests
 
         var expressionStatement = (ExpressionStatement)program.Statements()[0];
         var prefixExpression = (PrefixExpression)expressionStatement.Expression;
-        Assert.Equal(prefixOperator, prefixExpression.Operator);
-        Assert.True(IsIntegerLiteral(prefixExpression.Right, value));
+        Assert.True(IsPrefixExpression(prefixExpression, prefixOperator, value));
     }
 
     [Theory]
@@ -150,9 +146,7 @@ public class ParserTests
 
         var expressionStatement = (ExpressionStatement)program.Statements()[0];
         var infixExpression = (InfixExpression)expressionStatement.Expression;
-        Assert.True(IsIntegerLiteral(infixExpression.Left, leftValue));
-        Assert.Equal(infixOperator, infixExpression.Operator);
-        Assert.True(IsIntegerLiteral(infixExpression.Right, rightValue));
+        Assert.True(IsInfixExpression(infixExpression, leftValue, infixOperator, rightValue));
     }
 
     [Theory]
@@ -177,6 +171,23 @@ public class ParserTests
         Assert.Equal(expected, program.ToString());
     }
 
+    [Theory]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    public void ShouldParseBooleanExpression(string input, bool expected)
+    {
+        var lexer = new Lexer(input);
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements());
+
+        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var booleanExpression = (BooleanExpression)expressionStatement.Expression;
+        Assert.Equal(input, booleanExpression.ToString());
+        Assert.Equal(expected, booleanExpression.Value);
+    }
+
     private static bool IsIntegerLiteral(IExpression expression, int value)
     {
         if (expression is not IntegerLiteralExpression)
@@ -191,6 +202,83 @@ public class ParserTests
         }
 
         if (integerLiteralExpression.GetTokenLiteral() != value.ToString())
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsIdentifier(IExpression expression, string value)
+    {
+        if (expression is not IdentifierExpression)
+        {
+            return false;
+        }
+
+        var identifierExpression = (IdentifierExpression)expression;
+        if (identifierExpression.Value != value)
+        {
+            return false;
+        }
+
+        if (identifierExpression.GetTokenLiteral() != value)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsLiteralExpression(IExpression expression, object value)
+    {
+        return value switch
+        {
+            int => IsIntegerLiteral(expression, (int)value),
+            _ => IsIdentifier(expression, (string)value),
+        };
+    }
+
+    private static bool IsPrefixExpression(IExpression expression, string @operator, object right)
+    {
+        if (expression is not PrefixExpression)
+        {
+            return false;
+        }
+
+        var prefixExpression = (PrefixExpression)expression;
+        if (prefixExpression.Operator!= @operator)
+        {
+            return false;
+        }
+
+        if (!IsLiteralExpression(prefixExpression.Right, right))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsInfixExpression(IExpression expression, object left, string @operator, object right)
+    {
+        if (expression is not InfixExpression)
+        {
+            return false;
+        }
+
+        var infixExpression = (InfixExpression)expression;
+        if (!IsLiteralExpression(infixExpression.Left, left))
+        {
+            return false;
+        }
+
+        if (infixExpression.Operator != @operator)
+        {
+            return false;
+        }
+
+        if (!IsLiteralExpression(infixExpression.Right, right))
         {
             return false;
         }

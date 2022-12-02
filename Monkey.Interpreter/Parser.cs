@@ -40,6 +40,8 @@ public class Parser
         _prefixParseFunctions.Add(TokenType.INTEGER, ParseIntegerLiteral);
         _prefixParseFunctions.Add(TokenType.BANG, ParsePrefix);
         _prefixParseFunctions.Add(TokenType.MINUS, ParsePrefix);
+        _prefixParseFunctions.Add(TokenType.TRUE, ParseBoolean);
+        _prefixParseFunctions.Add(TokenType.FALSE, ParseBoolean);
 
         _infixParseFunctions.Add(TokenType.PLUS, ParseInfix);
         _infixParseFunctions.Add(TokenType.MINUS, ParseInfix);
@@ -216,6 +218,11 @@ public class Parser
         }
 
         return null;
+    }
+
+    private IExpression? ParseBoolean()
+    {
+        return new BooleanExpression(_currenToken, IsCurrentToken(TokenType.TRUE));
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)
