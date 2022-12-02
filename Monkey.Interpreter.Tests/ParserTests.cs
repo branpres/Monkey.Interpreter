@@ -114,7 +114,9 @@ public class ParserTests
     [Theory]
     [InlineData("!5;", "!", 5)]
     [InlineData("-15;", "-", 15)]
-    public void ShouldParsePrefixExpression(string input, string prefixOperator, int value)
+    [InlineData("!true;", "!", true)]
+    [InlineData("!false;", "!", false)]
+    public void ShouldParsePrefixExpression(string input, string prefixOperator, object value)
     {
         var lexer = new Lexer(input);
         var parser = new Parser(lexer);
@@ -136,7 +138,10 @@ public class ParserTests
     [InlineData("5 < 5;", 5, "<", 5)]
     [InlineData("5 == 5;", 5, "==", 5)]
     [InlineData("5 != 5;", 5, "!=", 5)]
-    public void ShouldParseInfixExpression(string input, int leftValue, string infixOperator, int rightValue)
+    [InlineData("true == true", true, "==", true)]
+    [InlineData("true != false", true, "!=", false)]
+    [InlineData("false == false", false, "==", false)]
+    public void ShouldParseInfixExpression(string input, object leftValue, string infixOperator, object rightValue)
     {
         var lexer = new Lexer(input);
         var parser = new Parser(lexer);
@@ -162,7 +167,11 @@ public class ParserTests
     [InlineData("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))")]
     [InlineData("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))")]
     [InlineData("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))")]
-    public void ShouldParsePrefixAndInfixExpressions(string input, string expected)
+    [InlineData("true", "true")]
+    [InlineData("false", "false")]
+    [InlineData("3 > 5 == false", "((3 > 5) == false)")]
+    [InlineData("3 < 5 == true", "((3 < 5) == true)")]
+    public void ShouldParsePrefixAndInfixExpressionsByPrecedence(string input, string expected)
     {
         var lexer = new Lexer(input);
         var parser = new Parser(lexer);
@@ -230,11 +239,33 @@ public class ParserTests
         return true;
     }
 
+    private static bool IsBooleanLiteral(IExpression expression, bool value)
+    {
+        if (expression is not BooleanExpression)
+        {
+            return false;
+        }
+
+        var booleanExpression = (BooleanExpression)expression;
+        if (booleanExpression.Value != value)
+        {
+            return false;
+        }
+
+        if (booleanExpression.GetTokenLiteral() != value.ToString().ToLower())
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private static bool IsLiteralExpression(IExpression expression, object value)
     {
         return value switch
         {
             int => IsIntegerLiteral(expression, (int)value),
+            bool => IsBooleanLiteral(expression, (bool)value),
             _ => IsIdentifier(expression, (string)value),
         };
     }
@@ -247,7 +278,7 @@ public class ParserTests
         }
 
         var prefixExpression = (PrefixExpression)expression;
-        if (prefixExpression.Operator!= @operator)
+        if (prefixExpression.Operator != @operator)
         {
             return false;
         }
