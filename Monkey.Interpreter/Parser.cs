@@ -42,6 +42,7 @@ public class Parser
         _prefixParseFunctions.Add(TokenType.MINUS, ParsePrefix);
         _prefixParseFunctions.Add(TokenType.TRUE, ParseBoolean);
         _prefixParseFunctions.Add(TokenType.FALSE, ParseBoolean);
+        _prefixParseFunctions.Add(TokenType.LEFT_PARENTHESIS, ParseGroup);
 
         _infixParseFunctions.Add(TokenType.PLUS, ParseInfix);
         _infixParseFunctions.Add(TokenType.MINUS, ParseInfix);
@@ -223,6 +224,20 @@ public class Parser
     private IExpression? ParseBoolean()
     {
         return new BooleanExpression(_currenToken, IsCurrentToken(TokenType.TRUE));
+    }
+
+    private IExpression? ParseGroup()
+    {
+        NextToken();
+
+        var expression = ParseExpression(Precedence.LOWEST);
+
+        if (!IsExpectedPeekTokenOf(TokenType.RIGHT_PARENTHESIS))
+        {
+            return null;
+        }
+
+        return expression;
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)
