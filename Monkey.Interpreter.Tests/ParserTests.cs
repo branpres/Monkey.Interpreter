@@ -245,6 +245,48 @@ public class ParserTests
         Assert.True(IsIdentifier(alternativeExpressionStatement.Expression, "y"));
     }
 
+    [Fact]
+    public void ShouldParseFunctionLiteralExpression()
+    {
+        var lexer = new Lexer("fn(x, y) { x + y; }");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements);
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var functionLiteralExpression = (FunctionLiteralExpression)expressionStatement.Expression;
+        Assert.Equal(2, functionLiteralExpression.Parameters.Count);
+        Assert.True(IsLiteralExpression(functionLiteralExpression.Parameters[0], "x"));
+        Assert.True(IsLiteralExpression(functionLiteralExpression.Parameters[1], "y"));
+
+        Assert.Single(functionLiteralExpression.Body.Statements);
+        var bodyExpressionStatement = (ExpressionStatement)functionLiteralExpression.Body.Statements[0];
+        Assert.True(IsInfixExpression(bodyExpressionStatement.Expression, "x", "+", "y"));
+    }
+
+    [Theory]
+    [InlineData("fn() {};", "")]
+    [InlineData("fn(x) {};", "x")]
+    [InlineData("fn(x, y, z) {};", "x,y,z")]
+    public void ShouldParseFunctionLiteralExpressionParameters(string input, string expected)
+    {
+        var lexer = new Lexer(input);
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expectedParameters = expected.Split(",", StringSplitOptions.RemoveEmptyEntries);
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var functionLiteralExpression = (FunctionLiteralExpression)expressionStatement.Expression;
+
+        Assert.Equal(expectedParameters.Length, functionLiteralExpression.Parameters.Count);
+
+        for (var i = 0; i < expectedParameters.Length; i++)
+        {
+            Assert.True(IsLiteralExpression(functionLiteralExpression.Parameters[i], expectedParameters[i]));
+        }       
+    }
+
     private static bool IsIntegerLiteral(IExpression expression, int value)
     {
         if (expression is not IntegerLiteralExpression)

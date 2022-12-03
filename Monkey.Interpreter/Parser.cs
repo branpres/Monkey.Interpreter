@@ -54,6 +54,7 @@ public class Parser
         _prefixParseFunctions.Add(TokenType.FALSE, ParseBoolean);
         _prefixParseFunctions.Add(TokenType.LEFT_PARENTHESIS, ParseGroup);
         _prefixParseFunctions.Add(TokenType.IF, ParseIf);
+        _prefixParseFunctions.Add(TokenType.FUNCTION, ParseFunctionLiteral);
 
         _infixParseFunctions.Add(TokenType.PLUS, ParseInfix);
         _infixParseFunctions.Add(TokenType.MINUS, ParseInfix);
@@ -307,6 +308,59 @@ public class Parser
         }
 
         return blockStatement;
+    }
+
+    private IExpression? ParseFunctionLiteral()
+    {
+        var token = _currenToken;
+
+        if (!IsExpectedPeekToken(TokenType.LEFT_PARENTHESIS))
+        {
+            return null;
+        }
+
+        var parameters = ParseFunctionParameters();
+
+        if (!IsExpectedPeekToken(TokenType.LEFT_BRACE))
+        {
+            return null;
+        }
+
+        var body = ParseBlockStatement();
+
+        var functionLiteralExpression = new FunctionLiteralExpression(token, body);
+        functionLiteralExpression.Parameters.AddRange(parameters);
+
+        return functionLiteralExpression;
+    }
+
+    private List<IdentifierExpression> ParseFunctionParameters()
+    {
+        var parameters = new List<IdentifierExpression>();
+
+        if (IsPeekToken(TokenType.RIGHT_PARENTHESIS))
+        {
+            NextToken();
+            return parameters;
+        }
+
+        NextToken();
+
+        parameters.Add(new IdentifierExpression(_currenToken, _currenToken.Literal));
+
+        while(IsPeekToken(TokenType.COMMA))
+        {
+            NextToken();
+            NextToken();
+            parameters.Add(new IdentifierExpression(_currenToken, _currenToken.Literal));
+        }
+
+        if (!IsExpectedPeekToken(TokenType.RIGHT_PARENTHESIS))
+        {
+            return new List<IdentifierExpression>();
+        }
+
+        return parameters;
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)
