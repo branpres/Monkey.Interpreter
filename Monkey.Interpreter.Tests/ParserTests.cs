@@ -15,7 +15,7 @@ public class ParserTests
         var program = parser.ParseProgram();
 
         Assert.NotNull(program);
-        Assert.Equal(3, program.Statements().Count);
+        Assert.Equal(3, program.Statements.Count);
     }
 
     [Theory]
@@ -28,7 +28,7 @@ public class ParserTests
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
-        var parsedStatement = program.Statements().Single();
+        var parsedStatement = program.Statements.Single();
         Assert.Equal("let", parsedStatement.GetTokenLiteral());
 
         var letStatement = (LetStatement)parsedStatement;
@@ -47,7 +47,7 @@ public class ParserTests
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
-        var parsedStatement = program.Statements().Single();
+        var parsedStatement = program.Statements.Single();
         Assert.Equal("return", parsedStatement.GetTokenLiteral());
 
         var returnStatement = (ReturnStatement)parsedStatement;
@@ -90,9 +90,9 @@ public class ParserTests
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
-        Assert.Single(program.Statements());
+        Assert.Single(program.Statements);
 
-        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
         var identifierExpression = (IdentifierExpression)expressionStatement.Expression;
         Assert.True(IsIdentifier(identifierExpression, "foobar"));
     }
@@ -104,9 +104,9 @@ public class ParserTests
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
-        Assert.Single(program.Statements());
+        Assert.Single(program.Statements);
 
-        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
         var integerLiteralExpression = (IntegerLiteralExpression)expressionStatement.Expression;
         Assert.True(IsIntegerLiteral(integerLiteralExpression, 5));
     }
@@ -122,9 +122,9 @@ public class ParserTests
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
-        Assert.Single(program.Statements());
+        Assert.Single(program.Statements);
 
-        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
         var prefixExpression = (PrefixExpression)expressionStatement.Expression;
         Assert.True(IsPrefixExpression(prefixExpression, prefixOperator, value));
     }
@@ -147,9 +147,9 @@ public class ParserTests
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
-        Assert.Single(program.Statements());
+        Assert.Single(program.Statements);
 
-        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
         var infixExpression = (InfixExpression)expressionStatement.Expression;
         Assert.True(IsInfixExpression(infixExpression, leftValue, infixOperator, rightValue));
     }
@@ -194,9 +194,9 @@ public class ParserTests
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
-        Assert.Single(program.Statements());
+        Assert.Single(program.Statements);
 
-        var expressionStatement = (ExpressionStatement)program.Statements()[0];
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
         var booleanExpression = (BooleanExpression)expressionStatement.Expression;
         Assert.Equal(input, booleanExpression.ToString());
         Assert.Equal(expected, booleanExpression.Value);

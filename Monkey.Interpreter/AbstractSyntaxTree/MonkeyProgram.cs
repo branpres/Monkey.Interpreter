@@ -2,17 +2,15 @@
 
 public class MonkeyProgram : INode
 {
-    private readonly List<IStatement> _statements = new();
+    public List<IStatement> Statements { get; } = new();
 
-    public List<IStatement> Statements() => _statements;
-
-    public void AddStatement(IStatement statement) => _statements.Add(statement);
+    public void AddStatement(IStatement statement) => Statements.Add(statement);
 
     public string GetTokenLiteral()
     {
-        if (_statements.Count > 0)
+        if (Statements.Count > 0)
         {
-            return _statements[0].GetTokenLiteral();
+            return Statements[0].GetTokenLiteral();
         }
 
         return string.Empty;
@@ -21,7 +19,7 @@ public class MonkeyProgram : INode
     public override string ToString()
     {
         var sb = new StringBuilder();
-        foreach (var statement in _statements)
+        foreach (var statement in Statements)
         {
             sb.Append(statement.ToString());
         }
