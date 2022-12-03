@@ -43,6 +43,7 @@ public class Parser
         _prefixParseFunctions.Add(TokenType.TRUE, ParseBoolean);
         _prefixParseFunctions.Add(TokenType.FALSE, ParseBoolean);
         _prefixParseFunctions.Add(TokenType.LEFT_PARENTHESIS, ParseGroup);
+        _prefixParseFunctions.Add(TokenType.IF, ParseIf);
 
         _infixParseFunctions.Add(TokenType.PLUS, ParseInfix);
         _infixParseFunctions.Add(TokenType.MINUS, ParseInfix);
@@ -92,14 +93,14 @@ public class Parser
     {   
         var token = _currenToken;
 
-        if (!IsExpectedPeekTokenOf(TokenType.IDENTIFIER))
+        if (!IsExpectedPeekToken(TokenType.IDENTIFIER))
         {
             return null;
         }
 
         var name = new IdentifierExpression(_currenToken, _currenToken.Literal);
 
-        if (!IsExpectedPeekTokenOf(TokenType.ASSIGNMENT))
+        if (!IsExpectedPeekToken(TokenType.ASSIGNMENT))
         {
             return null;
         }
@@ -232,12 +233,70 @@ public class Parser
 
         var expression = ParseExpression(Precedence.LOWEST);
 
-        if (!IsExpectedPeekTokenOf(TokenType.RIGHT_PARENTHESIS))
+        if (!IsExpectedPeekToken(TokenType.RIGHT_PARENTHESIS))
         {
             return null;
         }
 
         return expression;
+    }
+
+    private IExpression? ParseIf()
+    {
+        var token = _currenToken;
+
+        if (!IsExpectedPeekToken(TokenType.LEFT_PARENTHESIS))
+        {
+            return null;
+        }
+
+        NextToken();
+
+        var conditionExpression = ParseExpression(Precedence.LOWEST);
+        if (conditionExpression == null)
+        {
+            return null;
+        }
+
+        if (!IsExpectedPeekToken(TokenType.RIGHT_PARENTHESIS) && !IsExpectedPeekToken(TokenType.LEFT_BRACE))
+        {
+            return null;
+        }
+
+        var consequence = ParseBlockStatement();
+
+        BlockStatement? alternative = null;
+        if (IsPeekToken(TokenType.ELSE))
+        {
+            NextToken();
+
+            if (!IsExpectedPeekToken(TokenType.LEFT_BRACE))
+            {
+                return null;
+            }
+
+            alternative = ParseBlockStatement();
+        }
+
+        return new IfExpression(token, conditionExpression, consequence, alternative);
+    }
+
+    private BlockStatement ParseBlockStatement()
+    {
+        var blockStatement = new BlockStatement(_currenToken);
+
+        while(!IsCurrentToken(TokenType.RIGHT_BRACE) && !IsCurrentToken(TokenType.EOF))
+        {
+            var statement = ParseStatement();
+            if (statement != null)
+            {
+                blockStatement.Statements.Add(statement);
+            }
+
+            NextToken();
+        }
+
+        return blockStatement;
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)
@@ -250,7 +309,7 @@ public class Parser
         return _peekToken.TokenType == expectedTokenType;
     }
 
-    private bool IsExpectedPeekTokenOf(TokenType tokenType)
+    private bool IsExpectedPeekToken(TokenType tokenType)
     {
         if (IsPeekToken(tokenType))
         {

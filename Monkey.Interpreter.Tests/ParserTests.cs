@@ -198,8 +198,49 @@ public class ParserTests
 
         var expressionStatement = (ExpressionStatement)program.Statements[0];
         var booleanExpression = (BooleanExpression)expressionStatement.Expression;
-        Assert.Equal(input, booleanExpression.ToString());
-        Assert.Equal(expected, booleanExpression.Value);
+        Assert.True(IsBooleanLiteral(booleanExpression, expected));
+    }
+
+    [Fact]
+    public void ShouldParseIfExpressionWithoutAlternative()
+    {
+        var lexer = new Lexer("if (x < y) { x }");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements);
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var ifExpression = (IfExpression)expressionStatement.Expression;
+        Assert.True(IsInfixExpression(ifExpression.Condition, "x", "<", "y"));
+        Assert.Single(ifExpression.Consequence.Statements);
+
+        var consequenceExpressionStatement = (ExpressionStatement)ifExpression.Consequence.Statements[0];
+        Assert.True(IsIdentifier(consequenceExpressionStatement.Expression, "x"));
+
+        Assert.Null(ifExpression.Alternative);
+    }
+
+    [Fact]
+    public void ShouldParseIfExpressionWithAlternative()
+    {
+        var lexer = new Lexer("if (x < y) { x } else { y }");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements);
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var ifExpression = (IfExpression)expressionStatement.Expression;
+        Assert.True(IsInfixExpression(ifExpression.Condition, "x", "<", "y"));
+        Assert.Single(ifExpression.Consequence.Statements);
+
+        var consequenceExpressionStatement = (ExpressionStatement)ifExpression.Consequence.Statements[0];
+        Assert.True(IsIdentifier(consequenceExpressionStatement.Expression, "x"));
+
+        Assert.NotNull(ifExpression.Alternative);
+        var alternativeExpressionStatement = (ExpressionStatement)ifExpression.Alternative.Statements[0];
+        Assert.True(IsIdentifier(alternativeExpressionStatement.Expression, "y"));
     }
 
     private static bool IsIntegerLiteral(IExpression expression, int value)
