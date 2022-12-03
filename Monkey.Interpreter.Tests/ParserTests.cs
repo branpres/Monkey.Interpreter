@@ -1,4 +1,6 @@
 ﻿using Monkey.Interpreter.AbstractSyntaxTree;
+using Monkey.Interpreter.AbstractSyntaxTree.Expressions;
+using Monkey.Interpreter.AbstractSyntaxTree.Statements;
 
 namespace Monkey.Interpreter.Tests;
 

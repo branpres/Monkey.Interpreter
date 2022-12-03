@@ -1,4 +1,4 @@
-﻿namespace Monkey.Interpreter.AbstractSyntaxTree;
+﻿namespace Monkey.Interpreter.AbstractSyntaxTree.Statements;
 
 public class ExpressionStatement : Node, IStatement
 {

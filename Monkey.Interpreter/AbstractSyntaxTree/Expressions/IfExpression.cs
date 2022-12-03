@@ -1,8 +1,8 @@
-﻿namespace Monkey.Interpreter.AbstractSyntaxTree;
+﻿namespace Monkey.Interpreter.AbstractSyntaxTree.Expressions;
 
 public class IfExpression : Node, IExpression
 {
-    public IExpression Condition { get; } 
+    public IExpression Condition { get; }
 
     public BlockStatement Consequence { get; }
 

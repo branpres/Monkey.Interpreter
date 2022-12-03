@@ -1,4 +1,4 @@
-﻿namespace Monkey.Interpreter.AbstractSyntaxTree;
+﻿namespace Monkey.Interpreter.AbstractSyntaxTree.Expressions;
 
 public class InfixExpression : Node, IExpression
 {
