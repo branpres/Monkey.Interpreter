@@ -274,11 +274,11 @@ public class ParserTests
         var lexer = new Lexer(input);
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
-
-        var expectedParameters = expected.Split(",", StringSplitOptions.RemoveEmptyEntries);
+        
         var expressionStatement = (ExpressionStatement)program.Statements[0];
         var functionLiteralExpression = (FunctionLiteralExpression)expressionStatement.Expression;
 
+        var expectedParameters = expected.Split(",", StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal(expectedParameters.Length, functionLiteralExpression.Parameters.Count);
 
         for (var i = 0; i < expectedParameters.Length; i++)
