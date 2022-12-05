@@ -44,8 +44,8 @@ public class Parser
         _lexer = lexer;
 
         // initialize _currentToken and _peekToken
-        NextToken();
-        NextToken();
+        _currenToken = _lexer.GetNextToken();
+        _peekToken = _lexer.GetNextToken();
 
         _prefixParseFunctions.Add(TokenType.IDENTIFIER, ParseIdentifier);
         _prefixParseFunctions.Add(TokenType.INTEGER, ParseIntegerLiteral);
