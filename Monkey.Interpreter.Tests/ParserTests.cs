@@ -21,10 +21,12 @@ public class ParserTests
     }
 
     [Theory]
-    [InlineData("let x = 5;", "x")]
-    [InlineData("let y = 10;", "y")]
-    [InlineData("let foobar = 838383;", "foobar")]
-    public void ShouldParseLetStatement(string statement, string expectedName)
+    [InlineData("let x = 5;", "x", 5)]
+    [InlineData("let y = 10;", "y", 10)]
+    [InlineData("let foobar = 838383;", "foobar", 838383)]
+    [InlineData("let y = true;", "y", true)]
+    [InlineData("let foobar = y;", "foobar", "y")]
+    public void ShouldParseLetStatement(string statement, string expectedName, object expectedValue)
     {
         var lexer = new Lexer(statement);
         var parser = new Parser(lexer);
@@ -35,15 +37,17 @@ public class ParserTests
 
         var letStatement = (LetStatement)parsedStatement;
         Assert.Equal(TokenType.LET, letStatement.Token.TokenType);
-        Assert.Equal(expectedName, letStatement.Name.Value);
-        Assert.Equal(expectedName, letStatement.Name.GetTokenLiteral());
+        Assert.True(IsIdentifier(letStatement.Name, expectedName));
+        Assert.True(IsLiteralExpression(letStatement.Value, expectedValue));
     }
 
     [Theory]
-    [InlineData("return 5;")]
-    [InlineData("return 10;")]
-    [InlineData("return  993322;")]
-    public void ShouldParseReturnStatement(string statement)
+    [InlineData("return 5;", 5)]
+    [InlineData("return 10;", 10)]
+    [InlineData("return  993322;", 993322)]
+    [InlineData("return true;", true)]
+    [InlineData("return foobar;", "foobar")]
+    public void ShouldParseReturnStatement(string statement, object expectedValue)
     {
         var lexer = new Lexer(statement);
         var parser = new Parser(lexer);
@@ -54,6 +58,7 @@ public class ParserTests
 
         var returnStatement = (ReturnStatement)parsedStatement;
         Assert.Equal(TokenType.RETURN, returnStatement.Token.TokenType);
+        Assert.True(IsLiteralExpression(returnStatement.ReturnValue, expectedValue));
     }
 
     [Fact]
@@ -178,6 +183,9 @@ public class ParserTests
     [InlineData("2 / (5 + 5)", "(2 / (5 + 5))")]
     [InlineData("-(5 + 5)", "(-(5 + 5))")]
     [InlineData("!(true == true)", "(!(true == true))")]
+    [InlineData("a + add(b * c) + d", "((a + add((b * c))) + d)")]
+    [InlineData("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))", "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))")]
+    [InlineData("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))")]
     public void ShouldParsePrefixAndInfixExpressionsByPrecedence(string input, string expected)
     {
         var lexer = new Lexer(input);
@@ -285,6 +293,47 @@ public class ParserTests
         {
             Assert.True(IsLiteralExpression(functionLiteralExpression.Parameters[i], expectedParameters[i]));
         }       
+    }
+
+    [Fact]
+    public void ShouldParseCallExpression()
+    {
+        var lexer = new Lexer("add(1, 2 * 3, 4 + 5);");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        Assert.Single(program.Statements);
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var callExpression = (CallExpression)expressionStatement.Expression;
+        Assert.True(IsIdentifier(callExpression.Function, "add"));
+        Assert.Equal(3, callExpression.Arguments.Count);
+        Assert.True(IsLiteralExpression(callExpression.Arguments[0], 1));
+        Assert.True(IsInfixExpression(callExpression.Arguments[1], 2, "*", 3));
+        Assert.True(IsInfixExpression(callExpression.Arguments[2], 4, "+", 5));
+    }
+
+    [Theory]
+    [InlineData("add()", "add", "")]
+    [InlineData("add(1)", "add", "1")]
+    [InlineData("add(1, 2 * 3, 4 + 5", "add", "")]
+    public void ShouldParseCallExpressionArguments(string input, string expectedIdentifier, string expectedArgumentsCommaDelimited)
+    {
+        var lexer = new Lexer(input);
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var callExpression = (CallExpression)expressionStatement.Expression;
+        Assert.True(IsIdentifier(callExpression.Function, expectedIdentifier));
+
+        var expectedArguments = expectedArgumentsCommaDelimited.Split(",", StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(expectedArguments.Length, callExpression.Arguments.Count);
+
+        for (var i = 0; i < expectedArguments.Length; i++)
+        {
+            Assert.Equal(expectedArguments[i], callExpression.Arguments[i].ToString());
+        }
     }
 
     private static bool IsIntegerLiteral(IExpression expression, int value)

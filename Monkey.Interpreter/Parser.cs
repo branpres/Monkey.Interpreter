@@ -31,7 +31,8 @@ public class Parser
         { TokenType.PLUS, Precedence.SUM },
         { TokenType.MINUS, Precedence.SUM },
         { TokenType.SLASH, Precedence.PRODUCT },
-        { TokenType.ASTERISK, Precedence.PRODUCT }
+        { TokenType.ASTERISK, Precedence.PRODUCT },
+        { TokenType.LEFT_PARENTHESIS, Precedence.CALL }
     };
 
     private Token _currenToken;
@@ -64,6 +65,7 @@ public class Parser
         _infixParseFunctions.Add(TokenType.NOT_EQUAL, ParseInfix);
         _infixParseFunctions.Add(TokenType.LESS_THAN, ParseInfix);
         _infixParseFunctions.Add(TokenType.GREATER_THAN, ParseInfix);
+        _infixParseFunctions.Add(TokenType.LEFT_PARENTHESIS, ParseCallExpression);
     }
 
     public MonkeyProgram ParseProgram()
@@ -116,24 +118,42 @@ public class Parser
             return null;
         }
 
-        while (!IsCurrentToken(TokenType.SEMICOLON))
+        NextToken();
+
+        var value = ParseExpression(Precedence.LOWEST);
+
+        if (IsPeekToken(TokenType.SEMICOLON))
         {
             NextToken();
         }
 
-        return new LetStatement(token, name, null);
+        if (value != null)
+        {
+            return new LetStatement(token, name, value);
+        }
+
+        return null;
     }
 
     private ReturnStatement? ParseReturnStatement()
     {
         var token = _currenToken;
 
-        while (!IsCurrentToken(TokenType.SEMICOLON))
+        NextToken();
+
+        var returnValue = ParseExpression(Precedence.LOWEST);
+
+        if (!IsPeekToken(TokenType.SEMICOLON))
         {
             NextToken();
         }
 
-        return new ReturnStatement(token, null);
+        if (returnValue != null)
+        {
+            return new ReturnStatement(token, returnValue);
+        }
+
+        return null;
     }
 
     private ExpressionStatement? ParseExpressionStatement()
@@ -361,6 +381,53 @@ public class Parser
         }
 
         return parameters;
+    }
+
+    private IExpression? ParseCallExpression(IExpression function)
+    {
+        var token = _currenToken;
+        var arguments = ParseCallArguments();
+
+        return new CallExpression(token, function, arguments);
+    }
+
+    private List<IExpression> ParseCallArguments()
+    {
+        var arguments = new List<IExpression>();
+
+        if (IsPeekToken(TokenType.RIGHT_PARENTHESIS))
+        {
+            NextToken();
+            
+            return arguments;
+        }
+
+        NextToken();
+
+        var argument = ParseExpression(Precedence.LOWEST);
+        if (argument != null)
+        {
+            arguments.Add(argument);
+        }
+
+        while (IsPeekToken(TokenType.COMMA))
+        {
+            NextToken();
+            NextToken();
+
+            argument = ParseExpression(Precedence.LOWEST);
+            if (argument != null)
+            {
+                arguments.Add(argument);
+            }
+        }
+
+        if (!IsExpectedPeekToken(TokenType.RIGHT_PARENTHESIS))
+        {
+            return new List<IExpression>();
+        }
+
+        return arguments;
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)
