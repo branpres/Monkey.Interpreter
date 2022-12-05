@@ -1,1 +1,4 @@
+global using Monkey.Interpreter.AbstractSyntaxTree;
+global using Monkey.Interpreter.AbstractSyntaxTree.Expressions;
+global using Monkey.Interpreter.AbstractSyntaxTree.Statements;
 global using Xunit;
