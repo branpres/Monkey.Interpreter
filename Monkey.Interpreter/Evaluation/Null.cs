@@ -1,4 +1,4 @@
-﻿namespace Monkey.Interpreter.Evaluator;
+﻿namespace Monkey.Interpreter.Evaluation;
 
 public class Null : IObject
 {
