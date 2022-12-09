@@ -8,14 +8,22 @@ public static class Evaluator
 
     public static IObject? Evaluate(INode node)
     {
-        return node switch
+        switch (node)
         {
-            MonkeyProgram p => EvaluateStatements(p.Statements),
-            ExpressionStatement s => Evaluate(s.Expression),
-            IntegerLiteralExpression e => new IntegerObject(e.Value),
-            BooleanExpression e => GetBooleanObjectFromNativeBool(e.Value),
-            _ => null,
-        };
+            case MonkeyProgram p:
+                return EvaluateStatements(p.Statements);
+            case ExpressionStatement s:
+                return Evaluate(s.Expression);
+            case IntegerLiteralExpression e:
+                return new IntegerObject(e.Value);
+            case BooleanExpression e:
+                return GetBooleanObjectFromNativeBool(e.Value);
+            case PrefixExpression e:
+                var right = Evaluate(e.Right);
+                return EvaluatePrefixExpression(e.Operator, right);
+            default:
+                return null;
+        }
     }
 
     private static IObject? EvaluateStatements(List<IStatement> statements)
@@ -33,5 +41,58 @@ public static class Evaluator
     private static BooleanObject GetBooleanObjectFromNativeBool(bool input)
     {
         return input ? TRUE : FALSE;
+    }
+
+    private static IObject? EvaluatePrefixExpression(string @operator, IObject? right)
+    {
+        return @operator switch
+        {
+            "!" => EvaluateBangOperatorExpression(right),
+            "-" => EvaluateMinusPrefixOperatorExpression(right),
+            _ => null,
+        };
+    }
+
+    private static IObject? EvaluateBangOperatorExpression(IObject? right)
+    {
+        if (right != null)
+        {
+            if (right is not BooleanObject)
+            {
+                return FALSE;
+            }
+
+            if (right is NullObject)
+            {
+                return NULL;
+            }
+
+            var boolean = (BooleanObject)right;
+            if (boolean.Value)
+            {
+                return FALSE;
+            }
+
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    private static IObject? EvaluateMinusPrefixOperatorExpression(IObject? right)
+    {
+        if (right != null)
+        {
+            if (right is not IntegerObject)
+            {
+                return NULL;
+            }
+
+            var integer = (IntegerObject)right;
+
+            return new IntegerObject(-integer.Value);
+        }
+
+        return NULL;
     }
 }

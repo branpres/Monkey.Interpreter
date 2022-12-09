@@ -5,6 +5,8 @@ public class EvaluatorTests
     [Theory]
     [InlineData("5", 5)]
     [InlineData("10", 10)]
+    [InlineData("-5", -5)]
+    [InlineData("-10", -10)]
     public void ShouldEvaluateIntegerLiteralExpressionToIntegerObject(string input, int expected)
     {
         var evaluated = GetEvaluatedObject(input);
@@ -15,6 +17,19 @@ public class EvaluatorTests
     [InlineData("true", true)]
     [InlineData("false", false)]
     public void ShouldEvaluateBooleanExpressionToBooleanObject(string input, bool expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+        Assert.True(IsBooleanObject(evaluated, expected));
+    }
+
+    [Theory]
+    [InlineData("!true", false)]
+    [InlineData("!false", true)]
+    [InlineData("!5", false)]
+    [InlineData("!!true", true)]
+    [InlineData("!!false", false)]
+    [InlineData("!!5", true)]
+    public void ShouldEvaluateBangOperator(string input, bool expected)
     {
         var evaluated = GetEvaluatedObject(input);
         Assert.True(IsBooleanObject(evaluated, expected));
