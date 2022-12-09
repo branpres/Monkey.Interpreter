@@ -1,6 +1,6 @@
 ﻿namespace Monkey.Interpreter.Evaluation;
 
-public class Null : IObject
+public class NullObject : IObject
 {
     public ObjectType Type() => ObjectType.NULL;
 

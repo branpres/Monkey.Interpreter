@@ -11,6 +11,15 @@ public class EvaluatorTests
         Assert.True(IsIntegerObject(evaluated, expected));
     }
 
+    [Theory]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    public void ShouldEvaluateBooleanExpressionToBooleanObject(string input, bool expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+        Assert.True(IsBooleanObject(evaluated, expected));
+    }
+
     private static IObject? GetEvaluatedObject(string input)
     {
         var lexer = new Lexer(input);
@@ -22,6 +31,11 @@ public class EvaluatorTests
 
     private static bool IsIntegerObject(IObject? @object, int expected)
     {
-        return @object is Integer integer && integer.Value == expected;
+        return @object is IntegerObject integerObject && integerObject.Value == expected;
+    }
+
+    private static bool IsBooleanObject(IObject? @object, bool expected)
+    {
+        return @object is BooleanObject booleanObject && booleanObject.Value == expected;
     }
 }

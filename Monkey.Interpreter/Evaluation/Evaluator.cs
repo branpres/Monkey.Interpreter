@@ -2,13 +2,18 @@
 
 public static class Evaluator
 {
+    private static readonly BooleanObject TRUE = new(true);
+    private static readonly BooleanObject FALSE = new (false);
+    private static readonly NullObject NULL = new();
+
     public static IObject? Evaluate(INode node)
     {
         return node switch
         {
             MonkeyProgram p => EvaluateStatements(p.Statements),
             ExpressionStatement s => Evaluate(s.Expression),
-            IntegerLiteralExpression e => new Integer(e.Value),
+            IntegerLiteralExpression e => new IntegerObject(e.Value),
+            BooleanExpression e => GetBooleanObjectFromNativeBool(e.Value),
             _ => null,
         };
     }
@@ -23,5 +28,10 @@ public static class Evaluator
         }
 
         return @object;
+    }
+
+    private static BooleanObject GetBooleanObjectFromNativeBool(bool input)
+    {
+        return input ? TRUE : FALSE;
     }
 }

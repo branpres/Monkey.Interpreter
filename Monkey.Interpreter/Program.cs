@@ -36,7 +36,11 @@ do
             continue;
         }
 
-        Console.WriteLine($"{program}\n");
+        var evaluated = Evaluator.Evaluate(program);
+        if (evaluated != null)
+        {
+            Console.WriteLine($"{evaluated.Inspect()}\n");
+        }
     }
 }
 while (line != "exit");

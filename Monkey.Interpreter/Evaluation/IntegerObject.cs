@@ -1,10 +1,10 @@
 ﻿namespace Monkey.Interpreter.Evaluation;
 
-public class Integer : IObject
+public class IntegerObject : IObject
 {
     public int Value { get; }
 
-    public Integer(int value)
+    public IntegerObject(int value)
     {
         Value = value;
     }
