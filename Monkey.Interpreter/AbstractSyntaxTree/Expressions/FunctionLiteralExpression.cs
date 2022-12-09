@@ -11,8 +11,5 @@ public class FunctionLiteralExpression : Node, IExpression
         Body = body;
     }
 
-    public override string ToString()
-    {
-        return $"{GetTokenLiteral()}({string.Join(", ", Parameters.Select(x => x.ToString()))}){Body}";
-    }
+    public override string ToString() => $"{GetTokenLiteral()}({string.Join(", ", Parameters.Select(x => x.ToString()))}){Body}";
 }

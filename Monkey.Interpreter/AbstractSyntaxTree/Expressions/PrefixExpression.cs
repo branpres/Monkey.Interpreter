@@ -12,8 +12,5 @@ public class PrefixExpression : Node, IExpression
         Right = right;
     }
 
-    public override string ToString()
-    {
-        return $"({Operator}{Right.ToString()})";
-    }
+    public override string ToString() => $"({Operator}{Right.ToString()})";
 }

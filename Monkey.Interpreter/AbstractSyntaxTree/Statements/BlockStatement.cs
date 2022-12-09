@@ -6,9 +6,7 @@ public class BlockStatement : Node, IStatement
 
     public void AddStatement(IStatement statement) => Statements.Add(statement);
 
-    public BlockStatement(Token token) : base(token)
-    {
-    }
+    public BlockStatement(Token token) : base(token) { }
 
     public override string ToString()
     {

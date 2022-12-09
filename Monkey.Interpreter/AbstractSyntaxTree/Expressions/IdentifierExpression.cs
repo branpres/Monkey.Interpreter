@@ -9,8 +9,5 @@ public class IdentifierExpression : Node, IExpression
         Value = value;
     }
 
-    public override string ToString()
-    {
-        return Value;
-    }
+    public override string ToString() => Value;
 }

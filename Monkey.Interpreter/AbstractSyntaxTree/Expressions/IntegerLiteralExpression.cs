@@ -9,8 +9,5 @@ public class IntegerLiteralExpression : Node, IExpression
         Value = value;
     }
 
-    public override string ToString()
-    {
-        return Token.Literal;
-    }
+    public override string ToString() => Token.Literal;
 }

@@ -12,8 +12,5 @@ public class CallExpression : Node, IExpression
         Arguments = arguments;
     }
 
-    public override string ToString()
-    {
-        return $"{Function}({string.Join(", ", Arguments.Select(x => x.ToString()))})";
-    }
+    public override string ToString() => $"{Function}({string.Join(", ", Arguments.Select(x => x.ToString()))})";
 }

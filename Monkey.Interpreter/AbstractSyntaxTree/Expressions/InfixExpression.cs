@@ -15,8 +15,5 @@ public class InfixExpression : Node, IExpression
         Right = right;
     }
 
-    public override string ToString()
-    {
-        return $"({Left.ToString()} {Operator} {Right.ToString()})";
-    }
+    public override string ToString() => $"({Left.ToString()} {Operator} {Right.ToString()})";
 }
