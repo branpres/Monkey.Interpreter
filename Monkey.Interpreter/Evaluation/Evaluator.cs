@@ -8,6 +8,8 @@ public static class Evaluator
 
     public static IObject? Evaluate(INode node)
     {
+        IObject? left;
+        IObject? right;
         switch (node)
         {
             case MonkeyProgram p:
@@ -19,10 +21,14 @@ public static class Evaluator
             case BooleanExpression e:
                 return GetBooleanObjectFromNativeBool(e.Value);
             case PrefixExpression e:
-                var right = Evaluate(e.Right);
+                right = Evaluate(e.Right);
                 return EvaluatePrefixExpression(e.Operator, right);
+            case InfixExpression e:
+                left = Evaluate(e.Left);
+                right = Evaluate(e.Right);
+                return EvaluateInfixExpression(e.Operator, left, right);
             default:
-                return null;
+                return NULL;
         }
     }
 
@@ -47,9 +53,46 @@ public static class Evaluator
     {
         return @operator switch
         {
-            "!" => EvaluateBangOperatorExpression(right),
-            "-" => EvaluateMinusPrefixOperatorExpression(right),
-            _ => null,
+            Constants.Operator.BANG => EvaluateBangOperatorExpression(right),
+            Constants.Operator.MINUS => EvaluateMinusPrefixOperatorExpression(right),
+            _ => NULL,
+        };
+    }
+
+    private static IObject? EvaluateInfixExpression(string @operator, IObject? left, IObject? right)
+    {
+        if (left is IntegerObject && right is IntegerObject)
+        {
+            return EvaluateIntegerInfixExpression(@operator, left, right);
+        }
+        else if (@operator == Constants.Operator.EQUAL)
+        {
+            return GetBooleanObjectFromNativeBool(left == right);
+        }
+        else if (@operator == Constants.Operator.NOT_EQUAL)
+        {
+            return GetBooleanObjectFromNativeBool(left != right);
+        }
+
+        return NULL;
+    }
+
+    private static IObject? EvaluateIntegerInfixExpression(string @operator, IObject left, IObject right)
+    {
+        var leftValue = ((IntegerObject)left).Value;
+        var rightValue = ((IntegerObject)right).Value;
+
+        return @operator switch
+        {
+            Constants.Operator.PLUS => new IntegerObject(leftValue + rightValue),
+            Constants.Operator.MINUS => new IntegerObject(leftValue - rightValue),
+            Constants.Operator.ASTERISK => new IntegerObject(leftValue * rightValue),
+            Constants.Operator.SLASH => new IntegerObject(leftValue / rightValue),
+            Constants.Operator.LESS_THAN => GetBooleanObjectFromNativeBool(leftValue < rightValue),
+            Constants.Operator.GREATER_THAN => GetBooleanObjectFromNativeBool(leftValue > rightValue),
+            Constants.Operator.EQUAL => GetBooleanObjectFromNativeBool(leftValue == rightValue),
+            Constants.Operator.NOT_EQUAL => GetBooleanObjectFromNativeBool(leftValue != rightValue),
+            _ => NULL,
         };
     }
 
