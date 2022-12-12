@@ -65,6 +65,27 @@ public class EvaluatorTests
         Assert.True(IsBooleanObject(evaluated, expected));
     }
 
+    [Theory]
+    [InlineData("if (true) { 10 }", 10)]
+    [InlineData("if (false) { 10 }", null)]
+    [InlineData("if (1) { 10 }", 10)]
+    [InlineData("if (1 < 2) { 10 }", 10)]
+    [InlineData("if (1 > 2) { 10 }", null)]
+    [InlineData("if (1 > 2) { 10 } else { 20 }", 20)]
+    [InlineData("if (1 < 2) { 10 } else { 20 }", 10)]
+    public void ShouldEvaluateIfElseExpression(string input, int? expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+        if (expected is int @int)
+        {
+            Assert.True(IsIntegerObject(evaluated, @int));
+        }
+        else
+        {
+            Assert.True(IsNullObject(evaluated));
+        }
+    }
+
     private static IObject? GetEvaluatedObject(string input)
     {
         var lexer = new Lexer(input);
@@ -82,5 +103,10 @@ public class EvaluatorTests
     private static bool IsBooleanObject(IObject? @object, bool expected)
     {
         return @object is BooleanObject booleanObject && booleanObject.Value == expected;
+    }
+
+    private static bool IsNullObject(IObject? @object)
+    {
+        return @object is NullObject;
     }
 }

@@ -27,6 +27,10 @@ public static class Evaluator
                 left = Evaluate(e.Left);
                 right = Evaluate(e.Right);
                 return EvaluateInfixExpression(e.Operator, left, right);
+            case BlockStatement s:
+                return EvaluateStatements(s.Statements);
+            case IfExpression e:
+                return EvaluateIfExpression(e);
             default:
                 return NULL;
         }
@@ -137,5 +141,41 @@ public static class Evaluator
         }
 
         return NULL;
+    }
+
+    private static IObject? EvaluateIfExpression(IfExpression expression)
+    {
+        var condition = Evaluate(expression.Condition);
+
+        if (IsTruthy(condition))
+        {
+            return Evaluate(expression.Consequence);
+        }
+        else if (expression.Alternative != null)
+        {
+            return Evaluate(expression.Alternative);
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
+    private static bool IsTruthy(IObject? @object)
+    { 
+        if (@object == NULL)
+        {
+            return true;
+        }
+        else if (@object == TRUE)
+        {
+            return true;
+        }
+        else if (@object == FALSE)
+        {
+            return false;
+        }
+
+        return true;
     }
 }
