@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Monkey.Interpreter.Tests;
+﻿namespace Monkey.Interpreter.Tests;
 
 public class EvaluatorTests
 {
@@ -84,6 +82,18 @@ public class EvaluatorTests
         {
             Assert.True(IsNullObject(evaluated));
         }
+    }
+
+    [Theory]
+    [InlineData("return 10;", 10)]
+    [InlineData("return 10; 9;", 10)]
+    [InlineData("return 2 * 5; 9;", 10)]
+    [InlineData("9; return 2 * 5; 9;", 10)]
+    [InlineData("if (10 > 1) { if (10 > 1) { return 10; } return 1; }", 10)]
+    public void ShouldEvaluateReturnStatement(string input, int expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+        Assert.True(IsIntegerObject(evaluated, expected));
     }
 
     private static IObject? GetEvaluatedObject(string input)

@@ -13,7 +13,7 @@ public static class Evaluator
         switch (node)
         {
             case MonkeyProgram p:
-                return EvaluateStatements(p.Statements);
+                return EvaluateProgram(p);
             case ExpressionStatement s:
                 return Evaluate(s.Expression);
             case IntegerLiteralExpression e:
@@ -28,21 +28,29 @@ public static class Evaluator
                 right = Evaluate(e.Right);
                 return EvaluateInfixExpression(e.Operator, left, right);
             case BlockStatement s:
-                return EvaluateStatements(s.Statements);
+                return EvaluateBlockStatement(s);
             case IfExpression e:
                 return EvaluateIfExpression(e);
+            case ReturnStatement s:
+                var value = Evaluate(s.ReturnValue);
+                return value == null ? NULL : new ReturnValueObject(value);
             default:
                 return NULL;
         }
     }
 
-    private static IObject? EvaluateStatements(List<IStatement> statements)
+    private static IObject? EvaluateProgram(MonkeyProgram program)
     {
         IObject? @object = null;
 
-        foreach (var statement in statements)
+        foreach (var statement in program.Statements)
         {
             @object = Evaluate(statement);
+
+            if (@object is ReturnValueObject returnValueObject)
+            {
+                return returnValueObject.Value;
+            }
         }
 
         return @object;
@@ -159,6 +167,22 @@ public static class Evaluator
         {
             return NULL;
         }
+    }
+
+    private static IObject? EvaluateBlockStatement(BlockStatement blockStatement)
+    {
+        IObject? @object = null;
+
+        foreach (var statement in blockStatement.Statements)
+        {
+            @object = Evaluate(statement);
+            if (@object != null && @object is ReturnValueObject)
+            {
+                return @object;
+            }
+        }
+
+        return @object;
     }
 
     private static bool IsTruthy(IObject? @object)
