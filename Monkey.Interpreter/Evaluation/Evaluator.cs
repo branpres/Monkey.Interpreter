@@ -22,10 +22,25 @@ public static class Evaluator
                 return GetBooleanObjectFromNativeBool(e.Value);
             case PrefixExpression e:
                 right = Evaluate(e.Right);
+                if (IsError(right))
+                {
+                    return right;
+                }
+
                 return EvaluatePrefixExpression(e.Operator, right);
             case InfixExpression e:
                 left = Evaluate(e.Left);
+                if (IsError(left))
+                {
+                    return left;
+                }
+
                 right = Evaluate(e.Right);
+                if (IsError(right))
+                {
+                    return right;
+                }
+
                 return EvaluateInfixExpression(e.Operator, left, right);
             case BlockStatement s:
                 return EvaluateBlockStatement(s);
@@ -33,6 +48,11 @@ public static class Evaluator
                 return EvaluateIfExpression(e);
             case ReturnStatement s:
                 var value = Evaluate(s.ReturnValue);
+                if (IsError(value))
+                {
+                    return value;
+                }
+
                 return value == null ? NULL : new ReturnValueObject(value);
             default:
                 return NULL;
@@ -51,6 +71,10 @@ public static class Evaluator
             {
                 return returnValueObject.Value;
             }
+            else if (@object is ErrorObject errorObject)
+            {
+                return errorObject;
+            }
         }
 
         return @object;
@@ -63,12 +87,20 @@ public static class Evaluator
 
     private static IObject? EvaluatePrefixExpression(string @operator, IObject? right)
     {
-        return @operator switch
+        switch (@operator)
         {
-            Constants.Operator.BANG => EvaluateBangOperatorExpression(right),
-            Constants.Operator.MINUS => EvaluateMinusPrefixOperatorExpression(right),
-            _ => NULL,
-        };
+            case Constants.Operator.BANG:
+                return EvaluateBangOperatorExpression(right);
+            case Constants.Operator.MINUS:
+                return EvaluateMinusPrefixOperatorExpression(right);
+            default:
+                if (right != null)
+                {
+                    return CreateError("unknown operator: ", @operator, right.Type().ToString());
+                }
+
+                return NULL;
+        }
     }
 
     private static IObject? EvaluateInfixExpression(string @operator, IObject? left, IObject? right)
@@ -84,6 +116,15 @@ public static class Evaluator
         else if (@operator == Constants.Operator.NOT_EQUAL)
         {
             return GetBooleanObjectFromNativeBool(left != right);
+        }
+        else if (left != null && right != null)
+        {
+            if (left.Type() != right.Type())
+            {
+                return CreateError("type mismatch: ", left.Type().ToString(), @operator, right.Type().ToString());
+            }
+
+            return CreateError("unknown operator: ", left.Type().ToString(), @operator, right.Type().ToString());
         }
 
         return NULL;
@@ -104,7 +145,7 @@ public static class Evaluator
             Constants.Operator.GREATER_THAN => GetBooleanObjectFromNativeBool(leftValue > rightValue),
             Constants.Operator.EQUAL => GetBooleanObjectFromNativeBool(leftValue == rightValue),
             Constants.Operator.NOT_EQUAL => GetBooleanObjectFromNativeBool(leftValue != rightValue),
-            _ => NULL,
+            _ => CreateError("unknown operator: ", left.Type().ToString(), @operator, right.Type().ToString()),
         };
     }
 
@@ -140,7 +181,7 @@ public static class Evaluator
         {
             if (right is not IntegerObject)
             {
-                return NULL;
+                return CreateError("unknown operator: -", right.Type().ToString());
             }
 
             var integer = (IntegerObject)right;
@@ -154,6 +195,10 @@ public static class Evaluator
     private static IObject? EvaluateIfExpression(IfExpression expression)
     {
         var condition = Evaluate(expression.Condition);
+        if (IsError(condition))
+        {
+            return condition;
+        }
 
         if (IsTruthy(condition))
         {
@@ -176,7 +221,7 @@ public static class Evaluator
         foreach (var statement in blockStatement.Statements)
         {
             @object = Evaluate(statement);
-            if (@object != null && @object is ReturnValueObject)
+            if (@object != null && (@object is ReturnValueObject || @object is ErrorObject))
             {
                 return @object;
             }
@@ -201,5 +246,20 @@ public static class Evaluator
         }
 
         return true;
+    }
+
+    private static bool IsError(IObject? @object)
+    {
+        if (@object != NULL)
+        {
+            return @object is ErrorObject;
+        }
+
+        return false;
+    }
+
+    private static ErrorObject CreateError(string errorMessage, params string[] args)
+    {
+        return new ErrorObject($"{errorMessage}{string.Join(" ", args)}");
     }
 }

@@ -9,13 +9,7 @@ public class ReturnValueObject : IObject
         Value = value;
     }
 
-    public ObjectType Type()
-    {
-        return ObjectType.RETURN_VALUE;
-    }
+    public ObjectType Type() => ObjectType.RETURN_VALUE;
 
-    public string Inspect()
-    {
-        return Value.Inspect();
-    }
+    public string Inspect() => Value.Inspect();
 }

@@ -1,4 +1,6 @@
-﻿namespace Monkey.Interpreter.Tests;
+﻿using System.Security.Cryptography;
+
+namespace Monkey.Interpreter.Tests;
 
 public class EvaluatorTests
 {
@@ -94,6 +96,28 @@ public class EvaluatorTests
     {
         var evaluated = GetEvaluatedObject(input);
         Assert.True(IsIntegerObject(evaluated, expected));
+    }
+
+    [Theory]
+    [InlineData("5 + true;", "type mismatch: INTEGER + BOOLEAN")]
+    [InlineData("5 + true; 5;", "type mismatch: INTEGER + BOOLEAN")]
+    [InlineData("-true", "unknown operator: -BOOLEAN")]
+    [InlineData("true + false;", "unknown operator: BOOLEAN + BOOLEAN")]
+    [InlineData("5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN")]
+    [InlineData("if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN")]
+    [InlineData(@"if (10 > 1) {
+        if (10 > 1) {
+            return true + false;
+        }
+
+        return 1;
+        }", "unknown operator: BOOLEAN + BOOLEAN")]
+    public void ShouldHandleErrors(string input, string expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+        var errorObject = evaluated as ErrorObject;
+        Assert.NotNull(errorObject);
+        Assert.Equal(expected, errorObject.Message);
     }
 
     private static IObject? GetEvaluatedObject(string input)
