@@ -6,22 +6,22 @@ public static class Evaluator
     private static readonly BooleanObject FALSE = new (false);
     private static readonly NullObject NULL = new();
 
-    public static IObject? Evaluate(INode node)
+    public static IObject? Evaluate(INode node, Environment env)
     {
         IObject? left;
         IObject? right;
         switch (node)
         {
             case MonkeyProgram p:
-                return EvaluateProgram(p);
+                return EvaluateProgram(p, env);
             case ExpressionStatement s:
-                return Evaluate(s.Expression);
+                return Evaluate(s.Expression, env);
             case IntegerLiteralExpression e:
                 return new IntegerObject(e.Value);
             case BooleanExpression e:
                 return GetBooleanObjectFromNativeBool(e.Value);
             case PrefixExpression e:
-                right = Evaluate(e.Right);
+                right = Evaluate(e.Right, env);
                 if (IsError(right))
                 {
                     return right;
@@ -29,13 +29,13 @@ public static class Evaluator
 
                 return EvaluatePrefixExpression(e.Operator, right);
             case InfixExpression e:
-                left = Evaluate(e.Left);
+                left = Evaluate(e.Left, env);
                 if (IsError(left))
                 {
                     return left;
                 }
 
-                right = Evaluate(e.Right);
+                right = Evaluate(e.Right, env);
                 if (IsError(right))
                 {
                     return right;
@@ -43,29 +43,41 @@ public static class Evaluator
 
                 return EvaluateInfixExpression(e.Operator, left, right);
             case BlockStatement s:
-                return EvaluateBlockStatement(s);
+                return EvaluateBlockStatement(s, env);
             case IfExpression e:
-                return EvaluateIfExpression(e);
+                return EvaluateIfExpression(e, env);
             case ReturnStatement s:
-                var value = Evaluate(s.ReturnValue);
-                if (IsError(value))
+                var returnValue = Evaluate(s.ReturnValue, env);
+                if (IsError(returnValue))
                 {
-                    return value;
+                    return returnValue;
                 }
 
-                return value == null ? NULL : new ReturnValueObject(value);
+                return returnValue == null ? NULL : new ReturnValueObject(returnValue);
+            case LetStatement s:
+                var letStatement = Evaluate(s.Value, env);
+                if (IsError(letStatement))
+                {
+                    return letStatement;
+                }
+
+                env.Set(s.Name.Value, letStatement);
+
+                return letStatement;
+            case IdentifierExpression e:
+                return EvaluateIdentifierExpression(e, env);
             default:
                 return NULL;
         }
     }
 
-    private static IObject? EvaluateProgram(MonkeyProgram program)
+    private static IObject? EvaluateProgram(MonkeyProgram program, Environment env)
     {
         IObject? @object = null;
 
         foreach (var statement in program.Statements)
         {
-            @object = Evaluate(statement);
+            @object = Evaluate(statement, env);
 
             if (@object is ReturnValueObject returnValueObject)
             {
@@ -192,9 +204,9 @@ public static class Evaluator
         return NULL;
     }
 
-    private static IObject? EvaluateIfExpression(IfExpression expression)
+    private static IObject? EvaluateIfExpression(IfExpression expression, Environment env)
     {
-        var condition = Evaluate(expression.Condition);
+        var condition = Evaluate(expression.Condition, env);
         if (IsError(condition))
         {
             return condition;
@@ -202,11 +214,11 @@ public static class Evaluator
 
         if (IsTruthy(condition))
         {
-            return Evaluate(expression.Consequence);
+            return Evaluate(expression.Consequence, env);
         }
         else if (expression.Alternative != null)
         {
-            return Evaluate(expression.Alternative);
+            return Evaluate(expression.Alternative, env);
         }
         else
         {
@@ -214,13 +226,13 @@ public static class Evaluator
         }
     }
 
-    private static IObject? EvaluateBlockStatement(BlockStatement blockStatement)
+    private static IObject? EvaluateBlockStatement(BlockStatement blockStatement, Environment env)
     {
         IObject? @object = null;
 
         foreach (var statement in blockStatement.Statements)
         {
-            @object = Evaluate(statement);
+            @object = Evaluate(statement, env);
             if (@object != null && (@object is ReturnValueObject || @object is ErrorObject))
             {
                 return @object;
@@ -228,6 +240,17 @@ public static class Evaluator
         }
 
         return @object;
+    }
+
+    private static IObject? EvaluateIdentifierExpression(IdentifierExpression identifierExpression, Environment env)
+    {
+        var value = env.Get(identifierExpression.Value);
+        if (value == null)
+        {
+            return CreateError($"identifier not found: {identifierExpression.Value}");
+        }
+
+        return value;
     }
 
     private static bool IsTruthy(IObject? @object)

@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace Monkey.Interpreter.Tests;
+﻿namespace Monkey.Interpreter.Tests;
 
 public class EvaluatorTests
 {
@@ -112,6 +110,7 @@ public class EvaluatorTests
 
         return 1;
         }", "unknown operator: BOOLEAN + BOOLEAN")]
+    [InlineData("foobar", "identifier not found: foobar")]
     public void ShouldHandleErrors(string input, string expected)
     {
         var evaluated = GetEvaluatedObject(input);
@@ -120,13 +119,24 @@ public class EvaluatorTests
         Assert.Equal(expected, errorObject.Message);
     }
 
+    [Theory]
+    [InlineData("let a = 5; a;", 5)]
+    [InlineData("let a = 5 * 5; a;", 25)]
+    [InlineData("let a = 5; let b = a; b;", 5)]
+    [InlineData("let a = 5; let b = a; let c = a + b + 5; c;", 15)]
+    public void ShouldEvaluateLetStatement(string input, int expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+        Assert.True(IsIntegerObject(evaluated, expected));
+    }
+
     private static IObject? GetEvaluatedObject(string input)
     {
         var lexer = new Lexer(input);
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
-        return Evaluator.Evaluate(program);
+        return Evaluator.Evaluate(program, new Evaluation.Environment());
     }
 
     private static bool IsIntegerObject(IObject? @object, int expected)

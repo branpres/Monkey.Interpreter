@@ -16,6 +16,7 @@ const string MONKEY_FACE = """
  """;
 
 string? line;
+var env = new Monkey.Interpreter.Evaluation.Environment();
 do
 {
     Console.Write(">> ");
@@ -36,7 +37,7 @@ do
             continue;
         }
 
-        var evaluated = Evaluator.Evaluate(program);
+        var evaluated = Evaluator.Evaluate(program, env);
         if (evaluated != null)
         {
             Console.WriteLine($"{evaluated.Inspect()}\n");
