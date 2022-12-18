@@ -6,5 +6,6 @@ public enum ObjectType
     BOOLEAN,
     NULL,
     RETURN_VALUE,
-    ERROR
+    ERROR,
+    FUNCTION
 }

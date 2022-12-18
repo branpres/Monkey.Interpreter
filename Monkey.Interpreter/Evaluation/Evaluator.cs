@@ -66,6 +66,8 @@ public static class Evaluator
                 return letStatement;
             case IdentifierExpression e:
                 return EvaluateIdentifierExpression(e, env);
+            case FunctionLiteralExpression e:
+                return new FunctionObject(e.Parameters, e.Body, env);
             default:
                 return NULL;
         }

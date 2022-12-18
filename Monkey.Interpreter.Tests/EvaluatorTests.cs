@@ -130,6 +130,20 @@ public class EvaluatorTests
         Assert.True(IsIntegerObject(evaluated, expected));
     }
 
+    [Fact]
+    public void ShouldEvaluateFunction()
+    {
+        var input = "fn(x) { x + 2; };";
+
+        var evaluated = GetEvaluatedObject(input);
+        var function = evaluated as FunctionObject;
+
+        Assert.NotNull(function);
+        Assert.Single(function.Parameters);
+        Assert.Equal("x", function.Parameters[0].ToString());
+        Assert.Equal("(x + 2)", function.Body.ToString());
+    }
+
     private static IObject? GetEvaluatedObject(string input)
     {
         var lexer = new Lexer(input);
