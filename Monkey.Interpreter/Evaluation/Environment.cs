@@ -23,7 +23,7 @@ public class Environment
 
     public void Set(string name, IObject? @object) => Store[name] = @object;
 
-    public static Environment NewEnclosedEnvironment(Environment outer)
+    public static Environment EnclosedEnvironment(Environment outer)
     {
         return new Environment
         {

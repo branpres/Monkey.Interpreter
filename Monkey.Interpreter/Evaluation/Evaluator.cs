@@ -301,7 +301,7 @@ public static class Evaluator
 
     private static Environment ExtendFunctionEnvironment(FunctionObject function, List<IObject?> arguments)
     {
-        var env = Environment.NewEnclosedEnvironment(function.Environment);
+        var env = Environment.EnclosedEnvironment(function.Environment);
 
         if (arguments != null)
         {
