@@ -68,6 +68,20 @@ public static class Evaluator
                 return EvaluateIdentifierExpression(e, env);
             case FunctionLiteralExpression e:
                 return new FunctionObject(e.Parameters, e.Body, env);
+            case CallExpression e:
+                var function = Evaluate(e.Function, env);
+                if (IsError(function))
+                {
+                    return function;
+                }
+
+                var arguments = EvaluateExpressions(e.Arguments, env);
+                if (arguments.Count == 1 && IsError(arguments[0]))
+                {
+                    return arguments[0];
+                }
+
+                return ApplyFunction(function, arguments);
             default:
                 return NULL;
         }
@@ -253,6 +267,66 @@ public static class Evaluator
         }
 
         return value;
+    }
+
+    private static List<IObject?> EvaluateExpressions(List<IExpression> expressions, Environment env)
+    {
+        var objects = new List<IObject?>();
+
+        foreach (var expression in expressions)
+        {
+            var evaluated = Evaluate(expression, env);
+            objects.Add(evaluated);
+            if (IsError(evaluated))
+            {                
+                break;
+            }
+        }
+
+        return objects;
+    }
+
+    private static IObject? ApplyFunction(IObject? functionObject, List<IObject?> arguments)
+    {
+        if (functionObject == null)
+        {
+            return NULL;
+        }
+
+        var function = (FunctionObject)functionObject;
+        var extendedEnv = ExtendFunctionEnvironment(function, arguments);
+        var evaluated = Evaluate(function.Body, extendedEnv);
+        return UnwrapReturnValue(evaluated);
+    }
+
+    private static Environment ExtendFunctionEnvironment(FunctionObject function, List<IObject?> arguments)
+    {
+        var env = Environment.NewEnclosedEnvironment(function.Environment);
+
+        if (arguments != null)
+        {
+            for (var i = 0; i < function.Parameters.Count; i++)
+            {
+                env.Set(function.Parameters[i].Value, arguments[i]);
+            }
+        }
+
+        return env;
+    }
+
+    private static IObject? UnwrapReturnValue(IObject? @object)
+    {
+        if (@object == null)
+        {
+            return NULL;
+        }
+
+        if (@object is ReturnValueObject returnValue)
+        {
+            return returnValue.Value;
+        }
+
+        return @object;
     }
 
     private static bool IsTruthy(IObject? @object)

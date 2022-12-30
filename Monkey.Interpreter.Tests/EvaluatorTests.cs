@@ -144,6 +144,34 @@ public class EvaluatorTests
         Assert.Equal("(x + 2)", function.Body.ToString());
     }
 
+    [Theory]
+    [InlineData("let identity = fn(x) { x; }; identity(5);", 5)]
+    [InlineData("let identity = fn(x) { return x; }; identity(5);", 5)]
+    [InlineData("let double = fn(x) { x * 2; }; double(5);", 10)]
+    [InlineData("let add = fn(x, y) { x + y; }; add(5, 5);", 10)]    
+    [InlineData("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20)]
+    [InlineData("fn(x) { x; }(5)", 5)]
+    public void ShouldEvaluateFunctionApplication(string input, int expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+        Assert.True(IsIntegerObject(evaluated, expected));
+    }
+
+    [Fact]
+    public void ShouldEvaluateClosure()
+    {
+        var input = 
+        @"let newAdder = fn(x) {
+          fn(y) { x + y };
+        };
+
+        let addTwo = newAdder(2);
+        addTwo(2);";
+
+        var evaluated = GetEvaluatedObject(input);
+        Assert.True(IsIntegerObject(evaluated, 4));
+    }
+
     private static IObject? GetEvaluatedObject(string input)
     {
         var lexer = new Lexer(input);
