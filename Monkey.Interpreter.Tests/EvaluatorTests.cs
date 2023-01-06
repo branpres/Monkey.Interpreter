@@ -172,6 +172,14 @@ public class EvaluatorTests
         Assert.True(IsIntegerObject(evaluated, 4));
     }
 
+    [Fact]
+    public void ShouldEvaluateString()
+    {
+        var evaluated = GetEvaluatedObject(@"""Hello World!"";");
+
+        Assert.True(IsStringObject(evaluated, "Hello World!"));
+    }
+
     private static IObject? GetEvaluatedObject(string input)
     {
         var lexer = new Lexer(input);
@@ -194,5 +202,10 @@ public class EvaluatorTests
     private static bool IsNullObject(IObject? @object)
     {
         return @object is NullObject;
+    }
+
+    private static bool IsStringObject(IObject? @object, string expected)
+    {
+        return @object is StringObject stringObject && stringObject.Value == expected;
     }
 }

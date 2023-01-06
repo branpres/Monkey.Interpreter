@@ -92,6 +92,9 @@ public class Lexer
             case '\0':
                 token = new Token(TokenType.EOF, character);
                 break;
+            case '\"':
+                token = new Token(TokenType.STRING, ReadString());
+                break;
             default:
                 if (_character.IsLetter())
                 {
@@ -144,6 +147,18 @@ public class Lexer
     {
         var position = _position;
         while (_character.IsDigit())
+        {
+            ReadCharacter();
+        }
+
+        return _input[position.._position];
+    }
+
+    private string ReadString()
+    {
+        var position = _position + 1;
+        ReadCharacter();
+        while(_character != '\"' && _character != '\0')
         {
             ReadCharacter();
         }

@@ -82,6 +82,8 @@ public static class Evaluator
                 }
 
                 return ApplyFunction(function, arguments);
+            case StringLiteralExpression e:
+                return new StringObject(e.Value);
             default:
                 return NULL;
         }

@@ -24,7 +24,9 @@ public class LexerTests
             }
 
             10 == 10;
-            10 != 9;");
+            10 != 9;
+            ""foobar""
+            ""foo bar""");
 
         var expectedTokens = new List<Token>
         {
@@ -100,8 +102,10 @@ public class LexerTests
             new (TokenType.INTEGER, "10"),
             new (TokenType.NOT_EQUAL, "!="),
             new (TokenType.INTEGER, "9"),
-            new (TokenType.SEMICOLON, ";"),
-            new (TokenType.EOF, "\0"),
+            new (TokenType.SEMICOLON, ";"),            
+            new (TokenType.STRING, "foobar"),
+            new (TokenType.STRING, "foo bar"),
+            new (TokenType.EOF, "\0")
         };
 
         var lexedTokens = new List<Token>();

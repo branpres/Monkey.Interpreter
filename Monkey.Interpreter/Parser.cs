@@ -56,6 +56,7 @@ public class Parser
         _prefixParseFunctions.Add(TokenType.LEFT_PARENTHESIS, ParseGroup);
         _prefixParseFunctions.Add(TokenType.IF, ParseIf);
         _prefixParseFunctions.Add(TokenType.FUNCTION, ParseFunctionLiteral);
+        _prefixParseFunctions.Add(TokenType.STRING, ParseStringLiteral);
 
         _infixParseFunctions.Add(TokenType.PLUS, ParseInfix);
         _infixParseFunctions.Add(TokenType.MINUS, ParseInfix);
@@ -215,6 +216,11 @@ public class Parser
         }
 
         return new IntegerLiteralExpression(_currenToken, integerLiteral);
+    }
+
+    private IExpression? ParseStringLiteral()
+    {
+        return new StringLiteralExpression(_currenToken, _currenToken.Literal);
     }
 
     private IExpression? ParsePrefix()

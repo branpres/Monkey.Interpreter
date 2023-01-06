@@ -8,6 +8,7 @@ public enum TokenType
     // identifiers, literals
     IDENTIFIER,
     INTEGER,
+    STRING,
 
     // operators
     ASSIGNMENT,

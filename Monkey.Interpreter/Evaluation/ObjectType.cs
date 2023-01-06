@@ -7,5 +7,6 @@ public enum ObjectType
     NULL,
     RETURN_VALUE,
     ERROR,
-    FUNCTION
+    FUNCTION,
+    STRING
 }

@@ -332,6 +332,19 @@ public class ParserTests
         }
     }
 
+    [Fact]
+    public void ShouldParseStringLiteralExpression()
+    {
+        var lexer = new Lexer(@"""Hello World!"";");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var stringLiteralExpression = (StringLiteralExpression)expressionStatement.Expression;
+
+        Assert.Equal("Hello World!", stringLiteralExpression.Value);
+    }
+
     private static bool IsIntegerLiteral(IExpression expression, int value)
     {
         if (expression is not IntegerLiteralExpression)
