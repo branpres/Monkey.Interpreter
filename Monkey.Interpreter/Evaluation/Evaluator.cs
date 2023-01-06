@@ -1,4 +1,6 @@
-﻿namespace Monkey.Interpreter.Evaluation;
+﻿using Monkey.Interpreter.AbstractSyntaxTree.Expressions;
+
+namespace Monkey.Interpreter.Evaluation;
 
 public static class Evaluator
 {
@@ -149,6 +151,11 @@ public static class Evaluator
         }
         else if (left != null && right != null)
         {
+            if (left.Type() == ObjectType.STRING && right.Type() == ObjectType.STRING)
+            {
+                return EvaluateStringInfixExpression(@operator, left, right);
+            }
+
             if (left.Type() != right.Type())
             {
                 return CreateError("type mismatch: ", left.Type().ToString(), @operator, right.Type().ToString());
@@ -269,6 +276,16 @@ public static class Evaluator
         }
 
         return value;
+    }
+
+    private static IObject? EvaluateStringInfixExpression(string @operator, IObject left, IObject right)
+    {
+        if (@operator != "+")
+        {
+            return CreateError($"unknown operator: {left.Type()} {@operator} {right.Type()}");
+        }
+
+        return new StringObject(((StringObject)left).Value + ((StringObject)right).Value);
     }
 
     private static List<IObject?> EvaluateExpressions(List<IExpression> expressions, Environment env)

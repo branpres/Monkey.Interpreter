@@ -111,6 +111,7 @@ public class EvaluatorTests
         return 1;
         }", "unknown operator: BOOLEAN + BOOLEAN")]
     [InlineData("foobar", "identifier not found: foobar")]
+    [InlineData("\"Hello\" - \"World!\";", "unknown operator: STRING - STRING")]
     public void ShouldHandleErrors(string input, string expected)
     {
         var evaluated = GetEvaluatedObject(input);
@@ -175,7 +176,15 @@ public class EvaluatorTests
     [Fact]
     public void ShouldEvaluateString()
     {
-        var evaluated = GetEvaluatedObject(@"""Hello World!"";");
+        var evaluated = GetEvaluatedObject("\"Hello World!\";");
+
+        Assert.True(IsStringObject(evaluated, "Hello World!"));
+    }
+
+    [Fact]
+    public void ShouldEvaluateConcatenatedString()
+    {
+        var evaluated = GetEvaluatedObject("\"Hello\" + \" \" + \"World!\";");
 
         Assert.True(IsStringObject(evaluated, "Hello World!"));
     }
