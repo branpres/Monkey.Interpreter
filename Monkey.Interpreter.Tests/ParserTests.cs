@@ -335,7 +335,7 @@ public class ParserTests
     [Fact]
     public void ShouldParseStringLiteralExpression()
     {
-        var lexer = new Lexer(@"""Hello World!"";");
+        var lexer = new Lexer("\"Hello World!\";");
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
 
