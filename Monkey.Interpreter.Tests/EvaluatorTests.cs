@@ -173,20 +173,36 @@ public class EvaluatorTests
         Assert.True(IsIntegerObject(evaluated, 4));
     }
 
-    [Fact]
-    public void ShouldEvaluateString()
+    [Theory]
+    [InlineData("\"Hello World!\";", "Hello World!")]
+    [InlineData("\"Hello\" + \" \" + \"World!\";", "Hello World!")]
+    public void ShouldEvaluateString(string input, string expected)
     {
-        var evaluated = GetEvaluatedObject("\"Hello World!\";");
+        var evaluated = GetEvaluatedObject(input);
 
-        Assert.True(IsStringObject(evaluated, "Hello World!"));
+        Assert.True(IsStringObject(evaluated, expected));
     }
 
-    [Fact]
-    public void ShouldEvaluateConcatenatedString()
+    [Theory]
+    [InlineData("len(\"\")", 0)]
+    [InlineData("len(\"four\")", 4)]
+    [InlineData("len(\"hello world\")", 11)]
+    [InlineData("len(1)", "argument to `len` not supported, got INTEGER")]
+    [InlineData("len(\"one\", \"two\")", "wrong number of arguments. got=2, want=1")]
+    public void ShouldEvaluateBuiltInFunction(string input, object expected)
     {
-        var evaluated = GetEvaluatedObject("\"Hello\" + \" \" + \"World!\";");
+        var evaluated = GetEvaluatedObject(input);
 
-        Assert.True(IsStringObject(evaluated, "Hello World!"));
+        if (expected is int expectedInt)
+        {
+            Assert.True(IsIntegerObject(evaluated, expectedInt));
+        }
+        else
+        {
+            Assert.NotNull(evaluated);
+            var error = (ErrorObject)evaluated;            
+            Assert.Equal(expected, error.Message);
+        }
     }
 
     private static IObject? GetEvaluatedObject(string input)

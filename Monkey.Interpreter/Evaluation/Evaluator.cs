@@ -1,12 +1,18 @@
-﻿using Monkey.Interpreter.AbstractSyntaxTree.Expressions;
-
-namespace Monkey.Interpreter.Evaluation;
+﻿namespace Monkey.Interpreter.Evaluation;
 
 public static class Evaluator
 {
     private static readonly BooleanObject TRUE = new(true);
-    private static readonly BooleanObject FALSE = new (false);
+    private static readonly BooleanObject FALSE = new(false);
     private static readonly NullObject NULL = new();
+
+    private static readonly Dictionary<string, BuiltInObject> _builtInFunctions = new()
+    {
+        {
+            "len",
+            new BuiltInObject(LenBuiltInFunction)
+        }
+    };
 
     public static IObject? Evaluate(INode node, Environment env)
     {
@@ -270,12 +276,17 @@ public static class Evaluator
     private static IObject? EvaluateIdentifierExpression(IdentifierExpression identifierExpression, Environment env)
     {
         var value = env.Get(identifierExpression.Value);
-        if (value == null)
+        if (value != null)
         {
-            return CreateError($"identifier not found: {identifierExpression.Value}");
+            return value;
         }
 
-        return value;
+        if (_builtInFunctions.TryGetValue(identifierExpression.Value, out var builtInFunction))
+        {
+            return builtInFunction;
+        }
+
+        return CreateError($"identifier not found: {identifierExpression.Value}");
     }
 
     private static IObject? EvaluateStringInfixExpression(string @operator, IObject left, IObject right)
@@ -305,20 +316,29 @@ public static class Evaluator
         return objects;
     }
 
-    private static IObject? ApplyFunction(IObject? functionObject, List<IObject?> arguments)
+    private static IObject? ApplyFunction(IObject? functionObject, List<IObject?>? arguments)
     {
         if (functionObject == null)
         {
             return NULL;
         }
 
-        var function = (FunctionObject)functionObject;
-        var extendedEnv = ExtendFunctionEnvironment(function, arguments);
-        var evaluated = Evaluate(function.Body, extendedEnv);
-        return UnwrapReturnValue(evaluated);
+        if (functionObject is FunctionObject function)
+        {
+            var extendedEnv = ExtendFunctionEnvironment(function, arguments);
+            var evaluated = Evaluate(function.Body, extendedEnv);
+            return UnwrapReturnValue(evaluated);
+        }
+        
+        if (functionObject is BuiltInObject builtInObject)
+        {
+            return builtInObject.BuiltInFunction(arguments);
+        }
+
+        return CreateError($"not a function {functionObject.Type()}");
     }
 
-    private static Environment ExtendFunctionEnvironment(FunctionObject function, List<IObject?> arguments)
+    private static Environment ExtendFunctionEnvironment(FunctionObject function, List<IObject?>? arguments)
     {
         var env = Environment.EnclosedEnvironment(function.Environment);
 
@@ -379,5 +399,30 @@ public static class Evaluator
     private static ErrorObject CreateError(string errorMessage, params string[] args)
     {
         return new ErrorObject($"{errorMessage}{string.Join(" ", args)}");
+    }
+
+    private static IObject LenBuiltInFunction(List<IObject?>? @object)
+    {
+        if (@object == null)
+        {
+            return CreateError($"wrong number of arguments. got=0, want=1");
+        }
+
+        if (@object.Count > 1)
+        {
+            return CreateError($"wrong number of arguments. got={@object.Count}, want=1");
+        }
+
+        if (@object[0] != null)
+        {
+            if (@object[0] is StringObject stringObject)
+            {
+                return new IntegerObject(stringObject.Value.Length);
+            }
+
+            return CreateError($"argument to `len` not supported, got {@object[0].Type()}");
+        }
+
+        return NULL;
     }
 }
