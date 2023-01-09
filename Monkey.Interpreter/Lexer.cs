@@ -95,6 +95,12 @@ public class Lexer
             case '\"':
                 token = new Token(TokenType.STRING, ReadString());
                 break;
+            case '[':
+                token = new Token(TokenType.LEFT_BRACKET, character);
+                break;
+            case ']':
+                token = new Token(TokenType.RIGHT_BRACKET, character);
+                break;
             default:
                 if (_character.IsLetter())
                 {

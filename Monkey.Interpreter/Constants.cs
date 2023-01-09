@@ -39,5 +39,7 @@ public static class Constants
         public const string RIGHT_PARENTHESIS = ")";
         public const string LEFT_BRACE = "{";
         public const string RIGHT_BRACE = "}";
+        public const string LEFT_BRACKET = "[";
+        public const string RIGHT_BRACKET = "]";
     }
 }
