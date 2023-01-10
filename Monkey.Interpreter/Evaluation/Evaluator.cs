@@ -100,6 +100,20 @@ public static class Evaluator
                 }
                                 
                 return new ArrayObject(elements.ToArray());
+            case IndexExpression e:
+                left = Evaluate(e.Left, env);
+                if (IsError(left))
+                {
+                    return left;
+                }
+
+                var index = Evaluate(e.Index, env);
+                if (IsError(index))
+                {
+                    return index;
+                }
+
+                return EvaluateIndexExpression(left, index);
             default:
                 return NULL;
         }
@@ -326,6 +340,35 @@ public static class Evaluator
         }
 
         return objects;
+    }
+
+    private static IObject? EvaluateIndexExpression(IObject? left, IObject? index)
+    {
+        if (left != null && index != null)
+        {
+            if (left.Type() == ObjectType.ARRAY && index.Type() == ObjectType.INTEGER)
+            {
+                return EvaluateArrayIndexExpression(left, index);
+            }
+
+            return CreateError($"index operator not supported: {left.Type()}");
+        }
+
+        return NULL;
+    }
+
+    private static IObject EvaluateArrayIndexExpression(IObject array, IObject index)
+    {
+        var arrayObject = (ArrayObject)array;
+        var arrayIndex = ((IntegerObject)index).Value;
+        var max = arrayObject.Elements.Length - 1;
+
+        if (arrayIndex < 0 || arrayIndex > max)
+        {
+            return NULL;
+        }
+
+        return arrayObject.Elements[arrayIndex];
     }
 
     private static IObject? ApplyFunction(IObject? functionObject, List<IObject>? arguments)

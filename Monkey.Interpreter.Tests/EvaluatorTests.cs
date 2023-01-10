@@ -203,6 +203,7 @@ public class EvaluatorTests
         }
     }
 
+    [Fact]
     public void ShouldEvaluateArrayLiteral()
     {
         var evaluated = GetEvaluatedObject("[1, 2 * 2, 3 + 3]");
@@ -213,6 +214,31 @@ public class EvaluatorTests
         Assert.True(IsIntegerObject(array.Elements[0], 1));
         Assert.True(IsIntegerObject(array.Elements[1], 4));
         Assert.True(IsIntegerObject(array.Elements[2], 6));
+    }
+
+    [Theory]
+    [InlineData("[1, 2, 3][0]", 1)]
+    [InlineData("[1, 2, 3][1]", 2)]
+    [InlineData("[1, 2, 3][2]", 3)]
+    [InlineData("let i = 0; [1][i];", 1)]
+    [InlineData("[1, 2, 3][1 + 1];", 3)]
+    [InlineData("let myArray = [1, 2, 3]; myArray[2];", 3)]
+    [InlineData("let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6)]
+    [InlineData("let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2)]
+    [InlineData("[1, 2, 3][3]", null)]
+    [InlineData("[1, 2, 3][-1]", null)]
+    public void ShouldEvaluateArrayIndex(string input, int? expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+
+        if (expected != null)
+        {
+            Assert.True(IsIntegerObject(evaluated, (int)expected));
+        }
+        else
+        {
+            Assert.True(IsNullObject(evaluated));
+        }
     }
 
     private static IObject? GetEvaluatedObject(string input)
