@@ -421,7 +421,12 @@ public class Parser
             return null;
         }
 
-        return new IndexExpression(token, left, index);
+        if (index != null)
+        { 
+            return new IndexExpression(token, left, index);
+        }
+
+        return null;
     }
 
     private List<IExpression> ParseExpressions(TokenType end)

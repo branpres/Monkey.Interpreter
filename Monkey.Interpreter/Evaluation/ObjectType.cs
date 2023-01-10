@@ -9,5 +9,6 @@ public enum ObjectType
     ERROR,
     FUNCTION,
     STRING,
-    BUILTIN
+    BUILTIN,
+    ARRAY
 }

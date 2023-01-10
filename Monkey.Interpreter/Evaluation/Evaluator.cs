@@ -92,6 +92,14 @@ public static class Evaluator
                 return ApplyFunction(function, arguments);
             case StringLiteralExpression e:
                 return new StringObject(e.Value);
+            case ArrayLiteralExpression e:
+                var elements = EvaluateExpressions(e.Elements, env);
+                if (elements.Count == 1 && IsError(elements[0]))
+                {
+                    return elements[0];
+                }
+                                
+                return new ArrayObject(elements.ToArray());
             default:
                 return NULL;
         }
@@ -299,14 +307,18 @@ public static class Evaluator
         return new StringObject(((StringObject)left).Value + ((StringObject)right).Value);
     }
 
-    private static List<IObject?> EvaluateExpressions(List<IExpression> expressions, Environment env)
+    private static List<IObject> EvaluateExpressions(List<IExpression> expressions, Environment env)
     {
-        var objects = new List<IObject?>();
+        var objects = new List<IObject>();
 
         foreach (var expression in expressions)
         {
             var evaluated = Evaluate(expression, env);
-            objects.Add(evaluated);
+            if (evaluated != null)
+            {
+                objects.Add(evaluated);
+            }
+            
             if (IsError(evaluated))
             {                
                 break;
@@ -316,7 +328,7 @@ public static class Evaluator
         return objects;
     }
 
-    private static IObject? ApplyFunction(IObject? functionObject, List<IObject?>? arguments)
+    private static IObject? ApplyFunction(IObject? functionObject, List<IObject>? arguments)
     {
         if (functionObject == null)
         {
@@ -338,7 +350,7 @@ public static class Evaluator
         return CreateError($"not a function {functionObject.Type()}");
     }
 
-    private static Environment ExtendFunctionEnvironment(FunctionObject function, List<IObject?>? arguments)
+    private static Environment ExtendFunctionEnvironment(FunctionObject function, List<IObject>? arguments)
     {
         var env = Environment.EnclosedEnvironment(function.Environment);
 
@@ -401,7 +413,7 @@ public static class Evaluator
         return new ErrorObject($"{errorMessage}{string.Join(" ", args)}");
     }
 
-    private static IObject LenBuiltInFunction(List<IObject?>? @object)
+    private static IObject LenBuiltInFunction(List<IObject>? @object)
     {
         if (@object == null)
         {

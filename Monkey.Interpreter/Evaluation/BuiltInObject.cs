@@ -2,9 +2,9 @@
 
 public class BuiltInObject : IObject
 {
-    public Func<List<IObject?>?, IObject> BuiltInFunction { get; }
+    public Func<List<IObject>?, IObject> BuiltInFunction { get; }
 
-    public BuiltInObject(Func<List<IObject?>?, IObject> builtInFunction)
+    public BuiltInObject(Func<List<IObject>?, IObject> builtInFunction)
     {
         BuiltInFunction = builtInFunction;
     }

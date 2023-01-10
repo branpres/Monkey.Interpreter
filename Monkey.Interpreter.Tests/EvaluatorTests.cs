@@ -134,9 +134,7 @@ public class EvaluatorTests
     [Fact]
     public void ShouldEvaluateFunction()
     {
-        var input = "fn(x) { x + 2; };";
-
-        var evaluated = GetEvaluatedObject(input);
+        var evaluated = GetEvaluatedObject("fn(x) { x + 2; };");
         var function = evaluated as FunctionObject;
 
         Assert.NotNull(function);
@@ -203,6 +201,18 @@ public class EvaluatorTests
             var error = (ErrorObject)evaluated;            
             Assert.Equal(expected, error.Message);
         }
+    }
+
+    public void ShouldEvaluateArrayLiteral()
+    {
+        var evaluated = GetEvaluatedObject("[1, 2 * 2, 3 + 3]");
+        var array = evaluated as ArrayObject;
+
+        Assert.NotNull(array);
+        Assert.Equal(3, array.Elements.Length);
+        Assert.True(IsIntegerObject(array.Elements[0], 1));
+        Assert.True(IsIntegerObject(array.Elements[1], 4));
+        Assert.True(IsIntegerObject(array.Elements[2], 6));
     }
 
     private static IObject? GetEvaluatedObject(string input)
