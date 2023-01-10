@@ -182,6 +182,8 @@ public class ParserTests
     [InlineData("a + add(b * c) + d", "((a + add((b * c))) + d)")]
     [InlineData("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))", "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))")]
     [InlineData("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))")]
+    [InlineData("a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)")]
+    [InlineData("add(a * b[2], b[1], 2 * [1, 2][1])", "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))")]
     public void ShouldParsePrefixAndInfixExpressionsByPrecedence(string input, string expected)
     {
         var lexer = new Lexer(input);
@@ -343,6 +345,36 @@ public class ParserTests
         var stringLiteralExpression = (StringLiteralExpression)expressionStatement.Expression;
 
         Assert.Equal("Hello World!", stringLiteralExpression.Value);
+    }
+
+    [Fact]
+    public void ShouldParseArrayLiteralExpression()
+    {
+        var lexer = new Lexer("[1, 2 * 2, 3 + 3]");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var arrayLiteralExpression = (ArrayLiteralExpression)expressionStatement.Expression;
+
+        Assert.Equal(3, arrayLiteralExpression.Elements.Count);
+        Assert.True(IsIntegerLiteral(arrayLiteralExpression.Elements[0], 1));
+        Assert.True(IsInfixExpression(arrayLiteralExpression.Elements[1], 2, "*", 2));
+        Assert.True(IsInfixExpression(arrayLiteralExpression.Elements[2], 3, "+", 3));
+    }
+
+    [Fact]
+    public void ShouldParseIndexExpression()
+    {
+        var lexer = new Lexer("myArray[1 + 1]");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var indexExpression = (IndexExpression)expressionStatement.Expression;
+
+        Assert.True(IsIdentifier(indexExpression.Left, "myArray"));
+        Assert.True(IsInfixExpression(indexExpression.Index, 1, "+", 1));
     }
 
     private static bool IsIntegerLiteral(IExpression expression, int value)

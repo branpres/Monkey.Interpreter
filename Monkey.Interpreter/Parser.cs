@@ -9,7 +9,8 @@ public enum Precedence
     SUM = 4,                // + or -
     PRODUCT = 5,            // * or /
     PREFIX = 6,             // -x or !x
-    CALL = 7                // myFunction(x)
+    CALL = 7,               // myFunction(x)
+    INDEX = 8               // array[index]
 }
 
 public class Parser
@@ -32,7 +33,8 @@ public class Parser
         { TokenType.MINUS, Precedence.SUM },
         { TokenType.SLASH, Precedence.PRODUCT },
         { TokenType.ASTERISK, Precedence.PRODUCT },
-        { TokenType.LEFT_PARENTHESIS, Precedence.CALL }
+        { TokenType.LEFT_PARENTHESIS, Precedence.CALL },
+        { TokenType.LEFT_BRACKET, Precedence.INDEX }
     };
 
     private Token _currenToken;
@@ -57,6 +59,7 @@ public class Parser
         _prefixParseFunctions.Add(TokenType.IF, ParseIf);
         _prefixParseFunctions.Add(TokenType.FUNCTION, ParseFunctionLiteral);
         _prefixParseFunctions.Add(TokenType.STRING, ParseStringLiteral);
+        _prefixParseFunctions.Add(TokenType.LEFT_BRACKET, ParseArrayLiteral);
 
         _infixParseFunctions.Add(TokenType.PLUS, ParseInfix);
         _infixParseFunctions.Add(TokenType.MINUS, ParseInfix);
@@ -67,6 +70,7 @@ public class Parser
         _infixParseFunctions.Add(TokenType.LESS_THAN, ParseInfix);
         _infixParseFunctions.Add(TokenType.GREATER_THAN, ParseInfix);
         _infixParseFunctions.Add(TokenType.LEFT_PARENTHESIS, ParseCallExpression);
+        _infixParseFunctions.Add(TokenType.LEFT_BRACKET, ParseIndexExpression);
     }
 
     public MonkeyProgram ParseProgram()
@@ -392,28 +396,51 @@ public class Parser
     private IExpression? ParseCallExpression(IExpression function)
     {
         var token = _currenToken;
-        var arguments = ParseCallArguments();
+        var arguments = ParseExpressions(TokenType.RIGHT_PARENTHESIS);
 
         return new CallExpression(token, function, arguments);
     }
 
-    private List<IExpression> ParseCallArguments()
+    private IExpression? ParseArrayLiteral()
     {
-        var arguments = new List<IExpression>();
+        var token = _currenToken;
 
-        if (IsPeekToken(TokenType.RIGHT_PARENTHESIS))
+        return new ArrayLiteralExpression(token, ParseExpressions(TokenType.RIGHT_BRACKET));
+    }
+
+    private IExpression? ParseIndexExpression(IExpression left)
+    {
+        var token = _currenToken;
+
+        NextToken();
+
+        var index = ParseExpression(Precedence.LOWEST);
+
+        if (!IsExpectedPeekToken(TokenType.RIGHT_BRACKET))
+        {
+            return null;
+        }
+
+        return new IndexExpression(token, left, index);
+    }
+
+    private List<IExpression> ParseExpressions(TokenType end)
+    {
+        var expressions = new List<IExpression>();
+
+        if (IsPeekToken(end))
         {
             NextToken();
-            
-            return arguments;
+
+            return expressions;
         }
 
         NextToken();
 
-        var argument = ParseExpression(Precedence.LOWEST);
-        if (argument != null)
+        var expression = ParseExpression(Precedence.LOWEST);
+        if (expression != null)
         {
-            arguments.Add(argument);
+            expressions.Add(expression);
         }
 
         while (IsPeekToken(TokenType.COMMA))
@@ -421,19 +448,19 @@ public class Parser
             NextToken();
             NextToken();
 
-            argument = ParseExpression(Precedence.LOWEST);
-            if (argument != null)
+            expression = ParseExpression(Precedence.LOWEST);
+            if (expression != null)
             {
-                arguments.Add(argument);
+                expressions.Add(expression);
             }
         }
 
-        if (!IsExpectedPeekToken(TokenType.RIGHT_PARENTHESIS))
+        if (!IsExpectedPeekToken(end))
         {
             return new List<IExpression>();
         }
 
-        return arguments;
+        return expressions;
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)
