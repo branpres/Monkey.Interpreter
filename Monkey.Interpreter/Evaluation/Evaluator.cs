@@ -8,10 +8,11 @@ public static class Evaluator
 
     private static readonly Dictionary<string, BuiltInObject> _builtInFunctions = new()
     {
-        {
-            "len",
-            new BuiltInObject(LenBuiltInFunction)
-        }
+        { "len", new BuiltInObject(LenBuiltInFunction) },
+        { "first", new BuiltInObject(FirstBuiltInFunction) },
+        { "last", new BuiltInObject(LastBuiltInFunction) },
+        { "rest", new BuiltInObject(RestBuiltInFunction) },
+        { "push", new BuiltInObject(PushBuiltInFunction) }
     };
 
     public static IObject? Evaluate(INode node, Environment env)
@@ -456,28 +457,135 @@ public static class Evaluator
         return new ErrorObject($"{errorMessage}{string.Join(" ", args)}");
     }
 
-    private static IObject LenBuiltInFunction(List<IObject>? @object)
+    private static IObject LenBuiltInFunction(List<IObject>? objects)
     {
-        if (@object == null)
+        if (objects == null)
         {
             return CreateError($"wrong number of arguments. got=0, want=1");
         }
 
-        if (@object.Count > 1)
+        if (objects.Count > 1)
         {
-            return CreateError($"wrong number of arguments. got={@object.Count}, want=1");
+            return CreateError($"wrong number of arguments. got={objects.Count}, want=1");
         }
 
-        if (@object[0] != null)
+        if (objects[0] != null)
         {
-            if (@object[0] is StringObject stringObject)
+            if (objects[0] is StringObject stringObject)
             {
                 return new IntegerObject(stringObject.Value.Length);
             }
 
-            return CreateError($"argument to `len` not supported, got {@object[0].Type()}");
+            if (objects[0] is ArrayObject arrayObject)
+            {
+                return new IntegerObject(arrayObject.Elements.Length);
+            }
+
+            return CreateError($"argument to `len` not supported, got {objects[0].Type()}");
         }
 
         return NULL;
+    }
+
+    private static IObject FirstBuiltInFunction(List<IObject>? objects)
+    {
+        if (objects == null)
+        {
+            return CreateError($"wrong number of arguments. got=0, want=1");
+        }
+
+        if (objects.Count != 1)
+        {
+            return CreateError($"wrong number of arguments. got={objects.Count}, want=1");
+        }
+
+        if (objects[0].Type() != ObjectType.ARRAY)
+        {
+            return CreateError($"argument to 'first' must be ARRAY, got {objects[0].Type()}");
+        }
+
+        var array = (ArrayObject)objects[0];
+        if (array.Elements.Length > 0)
+        {
+            return array.Elements[0];
+        }
+
+        return NULL;
+    }
+
+    private static IObject LastBuiltInFunction(List<IObject>? objects)
+    {
+        if (objects == null)
+        {
+            return CreateError($"wrong number of arguments. got=0, want=1");
+        }
+
+        if (objects.Count != 1)
+        {
+            return CreateError($"wrong number of arguments. got={objects.Count}, want=1");
+        }
+
+        if (objects[0].Type() != ObjectType.ARRAY)
+        {
+            return CreateError($"argument to 'last' must be ARRAY, got {objects[0].Type()}");
+        }
+
+        var array = (ArrayObject)objects[0];
+        if (array.Elements.Length > 0)
+        {
+            return array.Elements[^1];
+        }
+
+        return NULL;
+    }
+
+    private static IObject RestBuiltInFunction(List<IObject>? objects)
+    {
+        if (objects == null)
+        {
+            return CreateError($"wrong number of arguments. got=0, want=1");
+        }
+
+        if (objects.Count != 1)
+        {
+            return CreateError($"wrong number of arguments. got={objects.Count}, want=1");
+        }
+
+        if (objects[0].Type() != ObjectType.ARRAY)
+        {
+            return CreateError($"argument to 'rest' must be ARRAY, got {objects[0].Type()}");
+        }
+
+        var array = (ArrayObject)objects[0];
+        if (array.Elements.Length > 0)
+        {
+            return new ArrayObject(array.Elements.Skip(1).ToArray());
+        }
+
+        return NULL;
+    }
+
+    private static IObject PushBuiltInFunction(List<IObject>? objects)
+    {
+        if (objects == null)
+        {
+            return CreateError($"wrong number of arguments. got=0, want=1");
+        }
+
+        if (objects.Count != 2)
+        {
+            return CreateError($"wrong number of arguments. got={objects.Count}, want=2");
+        }
+
+        if (objects[0].Type() != ObjectType.ARRAY)
+        {
+            return CreateError($"argument to 'push' must be ARRAY, got {objects[0].Type()}");
+        }
+
+        var array = (ArrayObject)objects[0];
+        var elements = array.Elements.ToList();
+        elements.Add(objects[1]);
+
+        return new ArrayObject(elements.ToArray());
     }
 }

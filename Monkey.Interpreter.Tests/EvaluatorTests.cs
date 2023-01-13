@@ -147,7 +147,7 @@ public class EvaluatorTests
     [InlineData("let identity = fn(x) { x; }; identity(5);", 5)]
     [InlineData("let identity = fn(x) { return x; }; identity(5);", 5)]
     [InlineData("let double = fn(x) { x * 2; }; double(5);", 10)]
-    [InlineData("let add = fn(x, y) { x + y; }; add(5, 5);", 10)]    
+    [InlineData("let add = fn(x, y) { x + y; }; add(5, 5);", 10)]
     [InlineData("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20)]
     [InlineData("fn(x) { x; }(5)", 5)]
     public void ShouldEvaluateFunctionApplication(string input, int expected)
@@ -159,7 +159,7 @@ public class EvaluatorTests
     [Fact]
     public void ShouldEvaluateClosure()
     {
-        var input = 
+        var input =
         @"let newAdder = fn(x) {
           fn(y) { x + y };
         };
@@ -187,6 +187,13 @@ public class EvaluatorTests
     [InlineData("len(\"hello world\")", 11)]
     [InlineData("len(1)", "argument to `len` not supported, got INTEGER")]
     [InlineData("len(\"one\", \"two\")", "wrong number of arguments. got=2, want=1")]
+    [InlineData("len([1, 2, 3])", 3)]
+    [InlineData("first([1, 2, 3])", 1)]
+    [InlineData("first([1, 2, 3], 1)", "wrong number of arguments. got=2, want=1")]
+    [InlineData("first(1)", "argument to 'first' must be ARRAY, got INTEGER")]
+    [InlineData("last([1, 2, 3])", 3)]
+    [InlineData("last([1, 2, 3], 1)", "wrong number of arguments. got=2, want=1")]
+    [InlineData("last(1)", "argument to 'last' must be ARRAY, got INTEGER")]
     public void ShouldEvaluateBuiltInFunction(string input, object expected)
     {
         var evaluated = GetEvaluatedObject(input);
@@ -200,6 +207,31 @@ public class EvaluatorTests
             Assert.NotNull(evaluated);
             var error = (ErrorObject)evaluated;            
             Assert.Equal(expected, error.Message);
+        }
+    }
+
+    [Theory]
+    [InlineData("rest([1, 2, 3])", "[2, 3]")]
+    [InlineData("rest([1, 2, 3], 1)", "wrong number of arguments. got=2, want=1")]
+    [InlineData("rest(1)", "argument to 'rest' must be ARRAY, got INTEGER")]
+    [InlineData("push([1, 2, 3], 4)", "[1, 2, 3, 4]")]
+    [InlineData("push([1, 2, 3], 4, 5)", "wrong number of arguments. got=3, want=2")]
+    [InlineData("push(1, 2)", "argument to 'push' must be ARRAY, got INTEGER")]
+    public void ShouldEvaluateRestAndPushBuiltInFunctions(string input, object expected)
+    {
+        var evaluated = GetEvaluatedObject(input);
+
+        Assert.NotNull(evaluated);
+
+        if (evaluated is ErrorObject error)
+        {
+            Assert.Equal(expected, error.Message);
+        }
+        else
+        {
+            var arrayObject = evaluated as ArrayObject;
+            Assert.NotNull(arrayObject);
+            Assert.Equal(expected, arrayObject.Inspect());
         }
     }
 
