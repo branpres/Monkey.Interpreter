@@ -60,6 +60,7 @@ public class Parser
         _prefixParseFunctions.Add(TokenType.FUNCTION, ParseFunctionLiteral);
         _prefixParseFunctions.Add(TokenType.STRING, ParseStringLiteral);
         _prefixParseFunctions.Add(TokenType.LEFT_BRACKET, ParseArrayLiteral);
+        _prefixParseFunctions.Add(TokenType.LEFT_BRACE, ParseHashLiteral);
 
         _infixParseFunctions.Add(TokenType.PLUS, ParseInfix);
         _infixParseFunctions.Add(TokenType.MINUS, ParseInfix);
@@ -466,6 +467,45 @@ public class Parser
         }
 
         return expressions;
+    }
+
+    private IExpression? ParseHashLiteral()
+    {
+        var hash = new Dictionary<IExpression, IExpression>();
+
+        var token = _currenToken;        
+
+        while(!IsPeekToken(TokenType.RIGHT_BRACE))
+        {
+            NextToken();
+
+            var key = ParseExpression(Precedence.LOWEST);
+
+            if (!IsExpectedPeekToken(TokenType.COLON))
+            {
+                return null;
+            }
+
+            NextToken();
+            var value = ParseExpression(Precedence.LOWEST);
+
+            if (key != null && value != null)
+            {
+                hash.Add(key, value);
+            }
+            
+            if (!IsPeekToken(TokenType.RIGHT_BRACE) && !IsExpectedPeekToken(TokenType.COMMA))
+            {
+                return null;
+            }
+        }
+
+        if (!IsExpectedPeekToken(TokenType.RIGHT_BRACE))
+        {
+            return null;
+        }
+
+        return new HashLiteralExpression(token, hash);
     }
 
     private bool IsCurrentToken(TokenType expectedTokenType)

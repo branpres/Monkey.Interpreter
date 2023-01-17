@@ -25,6 +25,7 @@ public enum TokenType
     // delimiters
     COMMA,
     SEMICOLON,
+    COLON,
 
     // keywords
     FUNCTION,

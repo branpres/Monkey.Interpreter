@@ -101,6 +101,9 @@ public class Lexer
             case ']':
                 token = new Token(TokenType.RIGHT_BRACKET, character);
                 break;
+            case ':':
+                token = new Token(TokenType.COLON, character);
+                break;
             default:
                 if (_character.IsLetter())
                 {

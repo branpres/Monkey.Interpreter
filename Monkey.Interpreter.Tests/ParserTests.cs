@@ -377,6 +377,132 @@ public class ParserTests
         Assert.True(IsInfixExpression(indexExpression.Index, 1, "+", 1));
     }
 
+    [Fact]
+    public void ShouldParseHashLiteralsWithStringKeys()
+    {
+        var lexer = new Lexer("{\"one\": 1, \"two\": 2, \"three\": 3}");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var hashLiteralExpression = (HashLiteralExpression)expressionStatement.Expression;
+
+        Assert.Equal(3, hashLiteralExpression.Pairs.Count);
+
+        var expected = new Dictionary<string, int>
+        {
+            { "one", 1 },
+            { "two", 2 },
+            { "three", 3 }
+        };
+
+        foreach (var pair in hashLiteralExpression.Pairs)
+        {
+            var literal = (StringLiteralExpression)pair.Key;
+
+            Assert.True(pair.Key is StringLiteralExpression);
+            Assert.True(IsIntegerLiteral(pair.Value, expected[literal.Value]));
+        }
+    }
+
+    [Fact]
+    public void ShouldParseHashLiteralsWithIntegerKeys()
+    {
+        var lexer = new Lexer("{1: 1, 2: 2, 3: 3}");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var hashLiteralExpression = (HashLiteralExpression)expressionStatement.Expression;
+
+        Assert.Equal(3, hashLiteralExpression.Pairs.Count);
+
+        var expected = new Dictionary<int, int>
+        {
+            { 1, 1 },
+            { 2, 2 },
+            { 3, 3 }
+        };
+
+        foreach (var pair in hashLiteralExpression.Pairs)
+        {
+            var literal = (IntegerLiteralExpression)pair.Key;
+
+            Assert.True(pair.Key is IntegerLiteralExpression);
+            Assert.True(IsIntegerLiteral(pair.Value, expected[literal.Value]));
+        }
+    }
+
+    [Fact]
+    public void ShouldParseHashLiteralsWithBooleanKeys()
+    {
+        var lexer = new Lexer("{true: 1, false: 0}");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var hashLiteralExpression = (HashLiteralExpression)expressionStatement.Expression;
+
+        Assert.Equal(2, hashLiteralExpression.Pairs.Count);
+
+        var expected = new Dictionary<bool, int>
+        {
+            { true, 1 },
+            { false, 0 }
+        };
+
+        foreach (var pair in hashLiteralExpression.Pairs)
+        {
+            var literal = (BooleanExpression)pair.Key;
+
+            Assert.True(pair.Key is BooleanExpression);
+            Assert.True(IsIntegerLiteral(pair.Value, expected[literal.Value]));
+        }
+    }
+
+    [Fact]
+    public void ShouldParseEmptyHashLiteral()
+    {
+        var lexer = new Lexer("{}");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var hashLiteralExpression = (HashLiteralExpression)expressionStatement.Expression;
+
+        Assert.Empty(hashLiteralExpression.Pairs);
+    }
+
+    [Fact]
+    public void ShouldParseHashLiteralWithExpressions()
+    {
+        var lexer = new Lexer("{\"one\": 0 + 1, \"two\": 10 - 8, \"three\": 15 / 5}");
+        var parser = new Parser(lexer);
+        var program = parser.ParseProgram();
+
+        var expressionStatement = (ExpressionStatement)program.Statements[0];
+        var hashLiteralExpression = (HashLiteralExpression)expressionStatement.Expression;
+
+        Assert.Equal(3, hashLiteralExpression.Pairs.Count);
+
+        foreach (var pair in hashLiteralExpression.Pairs)
+        {
+            var key = (StringLiteralExpression)pair.Key;
+            switch (key.Value)
+            {   
+                case "one":
+                    Assert.True(IsInfixExpression(pair.Value, 0, "+", 1));
+                    break;
+                case "two":
+                    Assert.True(IsInfixExpression(pair.Value, 10, "-", 8));
+                    break;
+                case "three":
+                    Assert.True(IsInfixExpression(pair.Value, 15, "/", 5));
+                    break;
+            }
+        }
+    }
+
     private static bool IsIntegerLiteral(IExpression expression, int value)
     {
         if (expression is not IntegerLiteralExpression)

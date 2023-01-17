@@ -27,7 +27,8 @@ public class LexerTests
             10 != 9;
             ""foobar""
             ""foo bar""
-            [1, 2];");
+            [1, 2];
+            {""foo"": ""bar""}");
 
         var expectedTokens = new List<Token>
         {
@@ -112,6 +113,11 @@ public class LexerTests
             new (TokenType.INTEGER, "2"),
             new (TokenType.RIGHT_BRACKET, "]"),
             new (TokenType.SEMICOLON, ";"),
+            new (TokenType.LEFT_BRACE, "{"),
+            new (TokenType.STRING, "foo"),
+            new (TokenType.COLON, ":"),
+            new (TokenType.STRING, "bar"),
+            new (TokenType.RIGHT_BRACE, "}"),
             new (TokenType.EOF, "\0")
         };
 
